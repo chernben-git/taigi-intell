@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>咱兜的台語 - 個人/家庭榮譽牆</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Serif TC', serif; background-color: #2F4F2F; color: #F5F5DC; }
+        .gold-text { color: #D4AF37; }
+        .gold-border { border-color: #D4AF37; }
+        .bg-dark-green { background-color: #1A361A; }
+        .tab-active { background-color: #D4AF37; color: #1A361A; font-weight: bold; }
+        /* 新增回官宣按鈕效果 */
+        .btn-nav {
+            transition: all 0.3s ease;
+            background: rgba(212, 175, 55, 0.05);
+        }
+        .btn-nav:hover {
+            background: rgba(212, 175, 55, 0.15);
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <header class="relative text-center mb-10 border-b gold-border pb-6">
+        <div class="md:absolute md:left-0 md:top-0 mb-4 md:mb-0">
+            <a href="index.html" class="btn-nav inline-flex items-center gap-2 px-4 py-2 border gold-border rounded-lg text-xs gold-text font-bold tracking-widest">
+                <span>🏠</span> 返回官宣首頁
+            </a>
+        </div>
+
+        <h1 class="text-4xl md:text-5xl font-bold mb-4 tracking-[0.2em] gold-text">咱兜的台語</h1>
+        <div class="flex flex-col gap-1 text-sm md:text-lg opacity-90 italic">
+            <p>為台語文化續命</p>
+            <p>為台灣開創文明</p>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-4 space-y-6">
+            <div class="bg-dark-green border-2 gold-border rounded-xl p-6 shadow-2xl">
+                <div class="text-center">
+                    <div class="text-6xl mb-4">🧧</div>
+                    <h2 id="familyName" class="text-3xl font-bold gold-text mb-1">陳仕賢 家庭</h2>
+                    <p class="text-xs opacity-60">ID: F177124937338</p>
+                </div>
+                <div class="mt-8 space-y-4">
+                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                        <span>連續續命天數</span>
+                        <span class="text-2xl font-mono text-orange-400">🔥 4 天</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                        <span>文化總積分</span>
+                        <span class="text-2xl font-mono text-yellow-400">🏆 1250</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span>語言參與度</span>
+                        <div class="flex flex-col items-end">
+                            <span class="px-3 py-1 gold-border border bg-transparent gold-text rounded-full text-sm font-bold">積極參與</span>
+                            <span class="text-[10px] opacity-40 mt-1 italic">基於打卡與互動頻次</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-dark-green/80 p-6 rounded-xl border border-white/10">
+                <h3 class="text-sm font-bold gold-text mb-4 uppercase tracking-widest">治理守護勳章</h3>
+                <div class="flex gap-6 text-3xl">
+                    <span title="民主參與" class="drop-shadow-md">🗳️</span>
+                    <span title="守護者" class="drop-shadow-md">🛡️</span>
+                    <span title="知識探索" class="opacity-20 grayscale">📖</span>
+                    <span title="在地深耕" class="opacity-20 grayscale">📍</span>
+                </div>
+                <p class="text-[11px] mt-4 opacity-50 text-blue-300">參與 3 次決策投票 | 提交 1 筆守護檢舉</p>
+            </div>
+        </div>
+
+        <div class="lg:col-span-8 space-y-6">
+            <div class="bg-dark-green rounded-xl p-6 border border-white/10 shadow-inner">
+                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                    <h3 class="text-xl font-bold gold-text">學習查詢分析</h3>
+                    <div class="flex bg-black/30 p-1 rounded-lg border border-white/10">
+                        <button onclick="updateStats('day')" id="btn-day" class="px-4 py-1 rounded-md text-sm transition-all tab-active">今日</button>
+                        <button onclick="updateStats('week')" id="btn-week" class="px-4 py-1 rounded-md text-sm transition-all">本周</button>
+                        <button onclick="updateStats('month')" id="btn-month" class="px-4 py-1 rounded-md text-sm transition-all">本月</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="h-[300px]">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                    <div class="flex flex-col justify-center">
+                        <table class="w-full text-sm text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-white/10 gold-text">
+                                    <th class="py-2">參與範疇</th>
+                                    <th class="py-2 text-right">數值統計</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stat-table-body" class="opacity-90"></tbody>
+                        </table>
+                        <div class="mt-6 p-4 bg-yellow-900/10 border-l-4 border-[#D4AF37] rounded-r">
+                            <p class="text-[10px] gold-text font-bold mb-1 tracking-widest">💡 續命建議</p>
+                            <p id="ai-suggestion" class="text-xs leading-relaxed opacity-80"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-12 bg-dark-green rounded-xl p-6 border border-white/10">
+            <h3 class="text-xl font-bold mb-6 gold-text">文化續命熱度圖</h3>
+            <div class="flex gap-1 overflow-x-auto pb-4 justify-center" id="heatmap"></div>
+            <div class="flex justify-between items-center text-[10px] opacity-40 px-2 mt-2">
+                <span>2025-03-01 啟動系統</span>
+                <span>連續打卡能有效提升「語言參與度」</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let radarChart;
+        const labels = ['在地打卡', '語音朗讀', '廣播收聽', '繪本閱讀', '治理投票'];
+        
+        const mockData = {
+            day: {
+                chart: [25, 30, 60, 20, 10],
+                table: ["1 次打卡", "1 分鐘錄音", "45 秒收聽", "1 頁進度", "今日無投票"],
+                advise: "今日廣播收聽進度良好，若能增加一分鐘的「語音朗讀」，能更有效平衡參與度維度。"
+            },
+            week: {
+                chart: [65, 50, 85, 45, 70],
+                table: ["8 次打卡", "15 分鐘錄音", "12 分鐘累計", "6 頁進度", "2 次治理投票"],
+                advise: "這禮拜在「治理投票」表現優異！建議週末可安排前往尚未造訪的「友善環境」據點打卡。"
+            },
+            month: {
+                chart: [90, 75, 95, 65, 85],
+                table: ["32 次打卡", "1.5 小時累計", "45 分鐘累計", "28 頁累計", "4 次決策投票"],
+                advise: "您是本月的文化護航者！目前參與度非常全面，下個月可嘗試挑戰「繪本閱讀」全本完讀。"
+            }
+        };
+
+        function updateStats(period) {
+            ['day', 'week', 'month'].forEach(p => document.getElementById(`btn-${p}`).classList.remove('tab-active'));
+            document.getElementById(`btn-${period}`).classList.add('tab-active');
+            radarChart.data.datasets[0].data = mockData[period].chart;
+            radarChart.update();
+            const tableBody = document.getElementById('stat-table-body');
+            tableBody.innerHTML = labels.map((label, index) => `
+                <tr class="border-b border-white/5">
+                    <td class="py-2.5 opacity-70">${label}</td>
+                    <td class="py-2.5 text-right font-mono gold-text">${mockData[period].table[index]}</td>
+                </tr>
+            `).join('');
+            document.getElementById('ai-suggestion').innerText = mockData[period].advise;
+        }
+
+        const ctx = document.getElementById('radarChart').getContext('2d');
+        radarChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: mockData.day.chart,
+                    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                    borderColor: '#D4AF37',
+                    borderWidth: 2,
+                    pointRadius: 3,
+                }]
+            },
+            options: {
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        pointLabels: { color: '#F5F5DC', font: { size: 12 } },
+                        ticks: { display: false, max: 100, min: 0 }
+                    }
+                },
+                plugins: { legend: { display: false } },
+                maintainAspectRatio: false
+            }
+        });
+
+        const heatmap = document.getElementById('heatmap');
+        for (let i = 0; i < 52; i++) {
+            const week = document.createElement('div');
+            week.className = 'flex flex-col gap-1';
+            for (let j = 0; j < 7; j++) {
+                const day = document.createElement('div');
+                const opacity = Math.random() > 0.7 ? 'bg-[#D4AF37]' : 'bg-[#1A361A]';
+                day.className = `w-3 h-3 ${opacity} rounded-sm opacity-60 border border-white/5`;
+                week.appendChild(day);
+            }
+            heatmap.appendChild(week);
+        }
+        updateStats('day');
+    </script>
+</body>
+</html>
