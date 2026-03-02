@@ -18,7 +18,7 @@
       --text: rgba(255,255,255,.92);
       --muted: rgba(255,255,255,.72);
 
-      /* ✅ LINE 綠主題 */
+      /* ✅ LINE 綠主題（更像 LINE 綠） */
       --line: #06C755;      /* LINE 主綠 */
       --line2:#00B54A;      /* 深一階 */
       --mint: #9FF7C9;      /* 薄荷高光 */
@@ -37,14 +37,15 @@
 
     *{ box-sizing: border-box; }
     html,body{ height:100%; }
+
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(1200px 700px at 15% 10%, rgba(6,199,85,.22), transparent 55%),
+        radial-gradient(1200px 700px at 15% 10%, rgba(6,199,85,.24), transparent 55%),
         radial-gradient(900px 650px at 85% 15%, rgba(0,181,74,.18), transparent 50%),
-        radial-gradient(1000px 700px at 70% 85%, rgba(45,212,191,.14), transparent 55%),
+        radial-gradient(1000px 700px at 70% 85%, rgba(45,212,191,.12), transparent 55%),
         radial-gradient(900px 650px at 15% 85%, rgba(7,59,34,.24), transparent 55%),
         linear-gradient(180deg, #070A14, #0B1020 40%, #070A14);
       overflow-x:hidden;
@@ -69,6 +70,7 @@
       display:flex; align-items:center; gap:12px;
       font-weight:800;
       letter-spacing:.2px;
+      min-width: 220px;
     }
     .logo{
       width:42px;height:42px;border-radius:14px;
@@ -87,6 +89,8 @@
       color: var(--muted);
       backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
+      display:inline-flex;
+      width: fit-content;
     }
     .nav{
       display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
@@ -120,9 +124,9 @@
       content:"";
       position:absolute; inset:-2px;
       background:
-        radial-gradient(700px 260px at 30% 0%, rgba(6,199,85,.30), transparent 55%),
-        radial-gradient(700px 260px at 75% 0%, rgba(0,181,74,.22), transparent 55%),
-        radial-gradient(700px 280px at 70% 110%, rgba(45,212,191,.16), transparent 55%);
+        radial-gradient(760px 280px at 24% 0%, rgba(6,199,85,.34), transparent 58%),
+        radial-gradient(720px 260px at 78% 0%, rgba(0,181,74,.24), transparent 58%),
+        radial-gradient(800px 300px at 70% 110%, rgba(45,212,191,.16), transparent 58%);
       opacity:.95;
       pointer-events:none;
     }
@@ -151,6 +155,7 @@
       color: rgba(255,255,255,.90);
     }
 
+    /* Mission Banner */
     .mission{
       margin: 10px 0 14px;
       padding: 12px 14px;
@@ -229,6 +234,7 @@
     }
     .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.24); }
 
+    /* 主按鍵維持金黃 */
     .btnPrimary{
       border: 0;
       background: linear-gradient(135deg, var(--gold3), var(--gold), var(--gold2));
@@ -237,8 +243,9 @@
     }
     .btnPrimary:hover{ box-shadow: 0 18px 55px rgba(255,214,10,.26); }
 
+    /* Ghost 配合綠系 */
     .btnGhost{
-      border-color: rgba(6,199,85,.40);
+      border-color: rgba(6,199,85,.42);
       background: rgba(6,199,85,.10);
     }
 
@@ -279,7 +286,7 @@
       font-size: 14px;
     }
 
-    /*治理儀表板特定樣式*/
+    /* ✅ 合併自第二份：治理儀表板特定樣式 */
     .dashCard{
       border: 1px solid rgba(6,199,85,.30);
       background: linear-gradient(135deg, rgba(6,199,85,.08), rgba(255,255,255,.04));
@@ -308,6 +315,14 @@
     }
     .dashItem b{ display: block; color: var(--gold); margin-bottom: 4px; font-size: 15px; }
     .dashItem span{ font-size: 12px; color: var(--muted); display: block; margin-bottom: 12px; }
+    .dashItem .dashBtn{
+      display:inline-flex;
+      width: 100%;
+      justify-content:center;
+      padding: 8px 0;
+      font-size: 13px;
+      border-radius: 12px;
+    }
 
     .list{
       margin: 10px 0 0;
@@ -377,17 +392,43 @@
     .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
     .muted{ color: var(--muted); }
 
+    /* =========================================================
+       ✅ 手機 / 桌機 響應式強化（手機像手機、電腦像電腦）
+    ==========================================================*/
     @media (max-width: 640px){
       .wrap{ width: 94vw; padding: 18px 0 56px; }
-      .top{ flex-wrap: wrap; align-items: flex-start; gap: 10px; padding-bottom: 14px; }
-      .nav{ width: 100%; justify-content: flex-start; }
+
+      .top{
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: 10px;
+        padding-bottom: 14px;
+      }
+      .nav{
+        width: 100%;
+        justify-content: flex-start;
+      }
       .nav a{ font-size: 12px; padding: 7px 10px; }
+
       .hero{ padding: 18px; }
       .mission{ padding: 12px; }
       .ctaRow{ gap: 10px; }
-      .btn{ width: 100%; justify-content: center; }
+
+      /* 手機：按鈕全寬 */
+      .btn{ width: 100%; justify-content:center; }
+
+      /* 手機：字級略收斂 */
+      .lead{ font-size: 15px; }
       .missionText{ font-size: clamp(20px, 5.2vw, 26px); }
     }
+
+    @media (min-width: 1100px){
+      .wrap{ padding-top: 34px; }
+      .hero{ padding: 34px; }
+    }
+
+    /* 更保險：避免某些 WebView 橫向溢出 */
+    img, video, canvas, svg{ max-width: 100%; height: auto; }
   </style>
 </head>
 
@@ -407,6 +448,7 @@
         <a href="#dashboard">治理看板</a>
         <a href="#model">五層模型</a>
         <a href="#why">為何有效</a>
+        <a href="#apply">應用場景</a>
       </div>
     </div>
 
@@ -435,30 +477,36 @@
       <div class="ctaRow">
         <button class="btn btnPrimary" id="btnCopy">一鍵複製官宣文案</button>
         <button class="btn btnGhost" id="btnShare">分享給社群</button>
+        <a class="btn" href="#model">看模型</a>
       </div>
-      <div class="mini">適用：網站首頁／政策提案開場／新聞稿內文。</div>
+      <div class="mini">適用：網站首頁／政策提案開場／簡報第一頁／新聞稿內文。</div>
     </section>
 
+    <!-- ✅ 合併自第二份：治理儀表板區塊 -->
     <section class="card dashCard" id="dashboard" style="margin-top: 14px;">
       <h2>即時治理儀表板 (Governance Dashboards)</h2>
       <p>我們已將抽象的復振目標轉化為可視化的即時數據系統，支援個人、社團至全台規模的治理需求。</p>
-      
+
       <div class="dashGrid">
-        <a href="national-ops.html" class="dashItem">
+        <a href="national-ops.html" class="dashItem" aria-label="全台再生戰情室">
           <b>全台再生戰情室</b>
           <span>National Ops Center</span>
-          <div class="btn btnPrimary" style="padding: 8px 0; font-size: 13px;">進入戰情室</div>
+          <div class="btn btnPrimary dashBtn">進入戰情室</div>
         </a>
-        <a href="community-gov.html" class="dashItem">
+        <a href="community-gov.html" class="dashItem" aria-label="社團共造治理矩陣">
           <b>社團共造治理矩陣</b>
           <span>Community Matrix</span>
-          <div class="btn btnPrimary" style="padding: 8px 0; font-size: 13px;">管理社團</div>
+          <div class="btn btnPrimary dashBtn">管理社團</div>
         </a>
-        <a href="legacy-hall.html" class="dashItem">
+        <a href="legacy-hall.html" class="dashItem" aria-label="生命軌跡榮譽殿堂">
           <b>生命軌跡榮譽殿堂</b>
           <span>Individual Legacy</span>
-          <div class="btn btnPrimary" style="padding: 8px 0; font-size: 13px;">查看榮譽牆</div>
+          <div class="btn btnPrimary dashBtn">查看榮譽牆</div>
         </a>
+      </div>
+
+      <div class="mini muted" style="margin-top:10px;">
+        ※ 這三個連結可先指到你的 LIFF/網站路由，或暫時放 placeholder，之後再換真網址。
       </div>
     </section>
 
@@ -467,7 +515,8 @@
         <h2>核心命題</h2>
         <p>
           語言的本質不是教材，而是「群體互動」。<br/>
-          當聲音被理解、被回應、被重複，語言就誕生；當家庭、市場、公共空間的交流結構瓦解，語言就失去生成能力。
+          當聲音被理解、被回應、被重複，語言就誕生；當家庭、市場、公共空間的交流結構瓦解，語言就失去生成能力。<br/><br/>
+          因此語言復興的關鍵不是增加內容，而是重建生成條件——我們的平台正是把這個條件做成系統。
         </p>
 
         <ul class="list">
@@ -475,7 +524,7 @@
             <div class="icon">①</div>
             <div>
               <b>聲音出現</b>
-              <span>讓語音重新進入生活節奏（每日任務／電台收聽）。</span>
+              <span>讓語音重新進入生活節奏（每日任務／聽讀電台）。</span>
             </div>
           </li>
           <li class="li">
@@ -489,17 +538,18 @@
             <div class="icon">③</div>
             <div>
               <b>重複使用</b>
-              <span>積分與紀錄可視化，使使用成為可見的社會行為。</span>
+              <span>積分、榜單與紀錄可視化，使使用成為可見的社會行為。</span>
             </div>
           </li>
         </ul>
       </section>
 
       <aside class="card" id="why">
-        <h2>為何比傳統有效？</h2>
+        <h2>為何比傳統模式有效？</h2>
         <p>
           傳統：教材 → 上課 → 結束<br/>
-          我們：聲音 → 互動 → 重複 → 場域 → 數據 → 優化 → 再互動
+          我們：聲音 → 互動 → 重複 → 場域 → 數據 → 優化 → 再互動<br/><br/>
+          這是一個閉環生成系統：語言不再等待保存，而是主動生成。
         </p>
 
         <div class="hr"></div>
@@ -515,8 +565,15 @@
           </div>
           <div class="step">
             <div class="t">
-              <strong>場域交流瓦解</strong>
-              <span class="badge">工具失效</span>
+              <strong>市場與公共空間停止使用</strong>
+              <span class="badge">生活工具失效</span>
+            </div>
+            <p>語言退回練習本，離開真實情境。</p>
+          </div>
+          <div class="step">
+            <div class="t">
+              <strong>群體交流結構瓦解</strong>
+              <span class="badge">生成能力歸零</span>
             </div>
             <p>沒有群體回應，就不會形成穩定音義。</p>
           </div>
@@ -531,38 +588,52 @@
           <div class="icon">1</div>
           <div>
             <b>聲音啟動（學習層）</b>
-            <span>每日台語任務／電台收聽：讓聲音重新出現在生活裡。</span>
+            <span>每日台語任務／聽台語／讀冊／電台收聽：讓聲音重新出現在生活裡。</span>
           </div>
         </li>
         <li class="li">
           <div class="icon">2</div>
           <div>
             <b>群體理解（家庭與社團）</b>
-            <span>家庭對話打卡／社團任務：家庭是最小生成單位。</span>
+            <span>家庭對話打卡／社團共同任務：家庭是最小生成單位，社團是擴散節點。</span>
           </div>
         </li>
         <li class="li">
           <div class="icon">3</div>
           <div>
             <b>重複使用（打卡與積分）</b>
-            <span>任務紀錄／積分／排行榜：讓使用成為可見行為。</span>
+            <span>任務紀錄／積分／排行榜：讓語言使用成為可見的社會行為。</span>
           </div>
         </li>
         <li class="li">
           <div class="icon">4</div>
           <div>
             <b>固定場域（友善場域系統）</b>
-            <span>友善評分／地圖／實體打卡：讓語言走進生活。</span>
+            <span>友善評分／地圖／實體打卡：讓語言從練習走進生活。</span>
           </div>
         </li>
         <li class="li">
           <div class="icon">5</div>
           <div>
             <b>文化累積（數據治理層）</b>
-            <span>活躍指數／治理指標：把情感認同升級為數據指標。</span>
+            <span>活躍指數／家庭語言指數／場域友善指數：把情感認同升級為治理指標。</span>
           </div>
         </li>
       </ul>
+    </section>
+
+    <section class="card" id="apply" style="margin-top:14px;">
+      <h2>可擴展應用</h2>
+      <p>
+        這個模型不只適用於台語，也可用於客語、原民語、海外社群、宗教讀經團體與任何文化語言群體。<br/>
+        因為我們做的不是保存語言，而是模擬語言生成的結構。
+      </p>
+
+      <div class="ctaRow" style="margin-top:12px;">
+        <button class="btn btnPrimary" id="btnDownload">下載官宣純文字（.txt）</button>
+        <a class="btn" href="#top">回頂部</a>
+      </div>
+      <div class="mini muted">你可把這頁直接丟到 GitHub Pages / 自己網站 / LIFF Webview 當官宣頁。</div>
     </section>
 
     <footer>
@@ -572,19 +643,33 @@
   </div>
 
   <script>
+    // ✅ 合併：以「完整版官宣文案」為主（包含原因、閉環、應用）
     const OFFICIAL_COPY = `官宣｜我們不是做語言App，而是在打造一套「語言再生引擎」
 ——一套可被工程化的語言生成治理模型
 
 為台語文化續命
 為台灣開創文明
 
+語言不是被教出來的，而是被使用出來的。
+語言的誕生不在課堂，而在群體反覆交流：聲音被理解、被回應、被重複，語言就生成。
+
+語言會消失，不是因為沒有字典或教材，而是因為家庭、市場、公共空間的語言場域停止運作；當群體交流結構瓦解，語言就失去生成能力。
+
+因此，語言復興的關鍵不是增加內容，而是重建生成條件。
+
+我們的平台把語言誕生的五個自然階段工程化為五層系統：
 1) 聲音啟動（學習層）：每日任務／聽台語／讀冊／電台收聽
 2) 群體理解（家庭與社團）：家庭對話打卡／社團共同任務
 3) 重複使用（打卡與積分）：任務紀錄／積分制度／公開排行榜
 4) 固定場域（友善場域系統）：友善評分／地圖／實體打卡
 5) 文化累積（數據治理層）：活躍指數／家庭語言指數／場域友善指數
 
-這是一個閉環生成系統：語言不再等待保存，而是主動生成。`;
+傳統復振：教材 → 上課 → 結束
+我們的模型：聲音 → 互動 → 重複 → 場域 → 數據 → 優化 → 再互動
+這是一個閉環生成系統：語言不再等待保存，而是主動生成。
+
+這個模型不只適用於台語，也可擴展到客語、原民語、海外社群、宗教讀經團體與任何文化語言群體。
+因為我們不是保存語言，我們是在重建語言生成的引擎。`;
 
     const $ = (s)=>document.querySelector(s);
     $("#year").textContent = new Date().getFullYear();
@@ -604,32 +689,60 @@
       }
     }
 
+    function downloadText(filename, text){
+      const blob = new Blob([text], {type:"text/plain;charset=utf-8"});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast("已下載 .txt ✅");
+    }
+
     function toast(msg){
       const t = document.createElement("div");
       t.textContent = msg;
-      t.style.position="fixed"; t.style.left="50%"; t.style.bottom="18px";
-      t.style.transform="translateX(-50%)"; t.style.padding="10px 14px";
-      t.style.borderRadius="14px"; t.style.background="rgba(0,0,0,.55)";
+      t.style.position="fixed";
+      t.style.left="50%";
+      t.style.bottom="18px";
+      t.style.transform="translateX(-50%)";
+      t.style.padding="10px 14px";
+      t.style.borderRadius="14px";
+      t.style.background="rgba(0,0,0,.55)";
       t.style.border="1px solid rgba(255,255,255,.16)";
-      t.style.color="rgba(255,255,255,.92)"; t.style.backdropFilter="blur(10px)";
-      t.style.zIndex="9999"; t.style.fontWeight="700"; t.style.fontSize="13px";
+      t.style.color="rgba(255,255,255,.92)";
+      t.style.backdropFilter="blur(10px)";
+      t.style.webkitBackdropFilter="blur(10px)";
+      t.style.boxShadow="0 18px 55px rgba(0,0,0,.35)";
+      t.style.zIndex="9999";
+      t.style.fontWeight="700";
+      t.style.fontSize="13px";
       document.body.appendChild(t);
       setTimeout(()=>{ t.style.opacity="0"; t.style.transition="opacity .25s ease"; }, 1200);
       setTimeout(()=>t.remove(), 1550);
     }
 
-    document.querySelector("#btnCopy").addEventListener("click", ()=>copyText(OFFICIAL_COPY));
+    $("#btnCopy").addEventListener("click", ()=>copyText(OFFICIAL_COPY));
+    $("#btnDownload").addEventListener("click", ()=>downloadText("官宣_語言再生引擎.txt", OFFICIAL_COPY));
 
-    document.querySelector("#btnShare").addEventListener("click", async ()=>{
+    $("#btnShare").addEventListener("click", async ()=>{
       const data = {
         title: "官宣｜語言再生引擎",
         text: "為台語文化續命，為台灣開創文明。我們不是做語言App，而是在打造一套可工程化的語言生成治理模型。",
         url: location.href
       };
       try{
-        if (navigator.share) await navigator.share(data);
-        else copyText(`${data.title}\n${data.text}\n${data.url}`);
-      }catch(e){}
+        if (navigator.share){
+          await navigator.share(data);
+        }else{
+          await copyText(`${data.title}\n${data.text}\n${data.url}`);
+        }
+      }catch(e){
+        // user cancelled; no-op
+      }
     });
   </script>
 </body>
