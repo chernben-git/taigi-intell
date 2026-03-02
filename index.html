@@ -1,0 +1,636 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>官宣｜語言再生引擎</title>
+  <meta name="description" content="為台語文化續命，為台灣開創文明。我們不是做語言App，而是在打造一套可工程化的語言生成治理模型：語言再生引擎。" />
+  <meta property="og:title" content="官宣｜語言再生引擎" />
+  <meta property="og:description" content="為台語文化續命，為台灣開創文明。模擬語言誕生機制，重建群體互動與生活場域，讓語言主動生成。" />
+  <meta property="og:type" content="website" />
+
+  <style>
+    :root{
+      --bg: #0B1020;
+      --panel: rgba(255,255,255,.08);
+      --panel2: rgba(255,255,255,.12);
+      --stroke: rgba(255,255,255,.16);
+      --text: rgba(255,255,255,.92);
+      --muted: rgba(255,255,255,.72);
+
+      /* ✅ LINE 綠主題 */
+      --line: #06C755;      /* LINE 主綠 */
+      --line2:#00B54A;      /* 深一階 */
+      --mint: #9FF7C9;      /* 薄荷高光 */
+      --teal: #2DD4BF;      /* 青綠輔助 */
+      --deep: #073B22;      /* 深綠壓色 */
+
+      /* ✅ 按鍵維持金黃 */
+      --gold: #FFD60A;      /* 金黃主色 */
+      --gold2:#FFB703;      /* 深金 */
+      --gold3:#FFF3B0;      /* 淡金高光 */
+
+      --shadow: 0 20px 60px rgba(0,0,0,.45);
+      --radius: 22px;
+      --radius2: 16px;
+    }
+
+    *{ box-sizing: border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", Arial, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 700px at 15% 10%, rgba(6,199,85,.22), transparent 55%),
+        radial-gradient(900px 650px at 85% 15%, rgba(0,181,74,.18), transparent 50%),
+        radial-gradient(1000px 700px at 70% 85%, rgba(45,212,191,.14), transparent 55%),
+        radial-gradient(900px 650px at 15% 85%, rgba(7,59,34,.24), transparent 55%),
+        linear-gradient(180deg, #070A14, #0B1020 40%, #070A14);
+      overflow-x:hidden;
+    }
+
+    a{ color:inherit; text-decoration:none; }
+    .wrap{
+      width:min(1080px, 92vw);
+      margin: 0 auto;
+      padding: 28px 0 80px;
+    }
+
+    /* Top bar */
+    .top{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:16px;
+      padding: 10px 4px 22px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .logo{
+      width:42px;height:42px;border-radius:14px;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.9), rgba(255,255,255,.15) 35%, transparent 60%),
+        linear-gradient(135deg, rgba(159,247,201,.95), rgba(6,199,85,.95), rgba(0,181,74,.95));
+      box-shadow: 0 10px 30px rgba(6,199,85,.16);
+      border:1px solid rgba(255,255,255,.22);
+    }
+    .chip{
+      font-size:12px;
+      padding:7px 10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      color: var(--muted);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .nav{
+      display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;
+    }
+    .nav a{
+      font-size:13px;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+      white-space: nowrap;
+    }
+    .nav a:hover{
+      transform: translateY(-1px);
+      border-color: rgba(255,255,255,.2);
+      background: rgba(255,255,255,.08);
+    }
+
+    /* Hero */
+    .hero{
+      position:relative;
+      border-radius: var(--radius);
+      padding: 30px;
+      background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
+      border: 1px solid rgba(255,255,255,.14);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .hero::before{
+      content:"";
+      position:absolute; inset:-2px;
+      background:
+        radial-gradient(700px 260px at 30% 0%, rgba(6,199,85,.30), transparent 55%),
+        radial-gradient(700px 260px at 75% 0%, rgba(0,181,74,.22), transparent 55%),
+        radial-gradient(700px 280px at 70% 110%, rgba(45,212,191,.16), transparent 55%);
+      opacity:.95;
+      pointer-events:none;
+    }
+    .hero > *{ position:relative; }
+    .kicker{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .pill{
+      font-size:12px;
+      padding:8px 12px;
+      border-radius:999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .pill strong{ color: rgba(255,255,255,.92); }
+
+    .spark{
+      display:inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(6,199,85,.14);
+      border: 1px solid rgba(6,199,85,.26);
+      color: rgba(255,255,255,.90);
+    }
+
+    .mission{
+      margin: 10px 0 14px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(6,199,85,.30);
+      background:
+        radial-gradient(420px 120px at 15% 25%, rgba(6,199,85,.18), transparent 60%),
+        radial-gradient(420px 120px at 85% 60%, rgba(0,181,74,.14), transparent 60%),
+        rgba(0,0,0,.18);
+      box-shadow: 0 14px 40px rgba(6,199,85,.10);
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .missionMark{
+      flex:0 0 auto;
+      width: 34px; height: 34px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      display:grid; place-items:center;
+      background: linear-gradient(135deg, var(--mint), var(--line), var(--line2));
+      color:#0b1020;
+      font-weight: 900;
+      box-shadow: 0 10px 25px rgba(6,199,85,.16);
+    }
+    .missionText{
+      line-height: 1.28;
+      font-weight: 900;
+      letter-spacing: -0.2px;
+      font-size: clamp(22px, 2.35vw, 27px);
+      color: rgba(255,255,255,.94);
+    }
+    .missionText .sub{
+      display:block;
+      margin-top: 6px;
+      font-weight: 700;
+      font-size: 13px;
+      color: rgba(255,255,255,.70);
+    }
+
+    h1{
+      margin: 0 0 10px;
+      font-size: clamp(18px, 2.1vw, 30px);
+      line-height: 1.10;
+      letter-spacing: -0.6px;
+    }
+    .lead{
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 16px;
+      line-height: 1.7;
+      max-width: 78ch;
+    }
+
+    .ctaRow{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top: 6px;
+    }
+    .btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      gap:10px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.06);
+      color: rgba(255,255,255,.92);
+      font-weight:700;
+      cursor:pointer;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease, box-shadow .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.24); }
+
+    .btnPrimary{
+      border: 0;
+      background: linear-gradient(135deg, var(--gold3), var(--gold), var(--gold2));
+      color:#111;
+      box-shadow: 0 14px 40px rgba(255,214,10,.20);
+    }
+    .btnPrimary:hover{ box-shadow: 0 18px 55px rgba(255,214,10,.26); }
+
+    .btnGhost{
+      border-color: rgba(6,199,85,.40);
+      background: rgba(6,199,85,.10);
+    }
+
+    .mini{
+      font-size: 12px;
+      color: rgba(255,255,255,.66);
+      margin-top: 10px;
+    }
+
+    /* Sections */
+    .grid{
+      display:grid;
+      gap: 14px;
+      grid-template-columns: 1.2fr .8fr;
+      margin-top: 16px;
+    }
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    .card{
+      border-radius: 16px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      padding: 18px;
+      box-shadow: 0 18px 55px rgba(0,0,0,.28);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+    .card h2{
+      margin: 0 0 10px;
+      font-size: 18px;
+      letter-spacing: -0.2px;
+    }
+    .card p{
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.75;
+      font-size: 14px;
+    }
+
+    /*治理儀表板特定樣式*/
+    .dashCard{
+      border: 1px solid rgba(6,199,85,.30);
+      background: linear-gradient(135deg, rgba(6,199,85,.08), rgba(255,255,255,.04));
+    }
+    .dashGrid{
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 16px;
+    }
+    @media (max-width: 700px){
+      .dashGrid{ grid-template-columns: 1fr; }
+    }
+    .dashItem{
+      padding: 16px;
+      border-radius: 14px;
+      background: rgba(0,0,0,.2);
+      border: 1px solid rgba(255,255,255,.1);
+      text-align: center;
+      transition: all .2s ease;
+    }
+    .dashItem:hover{
+      border-color: var(--gold);
+      transform: translateY(-2px);
+      background: rgba(6,199,85,.12);
+    }
+    .dashItem b{ display: block; color: var(--gold); margin-bottom: 4px; font-size: 15px; }
+    .dashItem span{ font-size: 12px; color: var(--muted); display: block; margin-bottom: 12px; }
+
+    .list{
+      margin: 10px 0 0;
+      padding: 0;
+      list-style:none;
+      display:grid;
+      gap: 10px;
+    }
+    .li{
+      display:flex;
+      gap: 12px;
+      align-items:flex-start;
+      padding: 12px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(0,0,0,.16);
+    }
+    .icon{
+      flex: 0 0 auto;
+      width: 34px; height: 34px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.16);
+      display:grid; place-items:center;
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,.65), rgba(255,255,255,.10) 40%, transparent 65%),
+        linear-gradient(135deg, rgba(159,247,201,.95), rgba(6,199,85,.90), rgba(0,181,74,.90));
+      color:#0b1020;
+      font-weight: 900;
+      box-shadow: 0 10px 25px rgba(6,199,85,.14);
+    }
+    .li b{ display:block; margin-bottom: 3px; }
+    .li span{ color: var(--muted); font-size: 13px; line-height: 1.55; display:block; }
+
+    .steps{ display:grid; gap:10px; margin-top:12px; }
+    .step{
+      padding: 12px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.12);
+    }
+    .step .t{
+      display:flex; align-items:center; justify-content:space-between; gap:10px;
+      margin-bottom: 6px;
+    }
+    .badge{
+      font-size: 12px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.16);
+      color: rgba(255,255,255,.80);
+    }
+    .step p{ margin:0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+    footer{
+      margin-top: 16px;
+      padding: 18px 4px;
+      color: rgba(255,255,255,.58);
+      font-size: 12px;
+      display:flex;
+      flex-wrap:wrap;
+      gap: 10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .hr{ height:1px; background: rgba(255,255,255,.10); margin: 16px 0 0; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .muted{ color: var(--muted); }
+
+    @media (max-width: 640px){
+      .wrap{ width: 94vw; padding: 18px 0 56px; }
+      .top{ flex-wrap: wrap; align-items: flex-start; gap: 10px; padding-bottom: 14px; }
+      .nav{ width: 100%; justify-content: flex-start; }
+      .nav a{ font-size: 12px; padding: 7px 10px; }
+      .hero{ padding: 18px; }
+      .mission{ padding: 12px; }
+      .ctaRow{ gap: 10px; }
+      .btn{ width: 100%; justify-content: center; }
+      .missionText{ font-size: clamp(20px, 5.2vw, 26px); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <div style="font-size:14px;opacity:.92;">咱兜的台語｜語言再生引擎</div>
+          <div class="chip mono">Official Announcement • v1</div>
+        </div>
+      </div>
+
+      <div class="nav" aria-label="Navigation">
+        <a href="#thesis">核心命題</a>
+        <a href="#dashboard">治理看板</a>
+        <a href="#model">五層模型</a>
+        <a href="#why">為何有效</a>
+      </div>
+    </div>
+
+    <section class="hero" id="top">
+      <div class="kicker">
+        <span class="pill"><strong>官宣</strong>｜文明工程級模型</span>
+        <span class="pill">不是語言App</span>
+        <span class="pill">是 <span class="spark">語言生成引擎</span></span>
+      </div>
+
+      <div class="mission" role="note" aria-label="使命宣言">
+        <div class="missionMark">★</div>
+        <div class="missionText">
+          為台語文化續命<br/>
+          為台灣開創文明
+          <span class="sub">讓每一次使用，都成為語言再生的一步。</span>
+        </div>
+      </div>
+
+      <h1>我們在打造一套<br/>可被工程化的「語言生成治理模型」</h1>
+      <p class="lead">
+        語言不是被教出來的，而是被使用出來的。<br/>
+        我們用數位方式重建「群體反覆互動」與「生活場域」，讓語言可以主動生成、可累積、可治理、可再生。
+      </p>
+
+      <div class="ctaRow">
+        <button class="btn btnPrimary" id="btnCopy">一鍵複製官宣文案</button>
+        <button class="btn btnGhost" id="btnShare">分享給社群</button>
+      </div>
+      <div class="mini">適用：網站首頁／政策提案開場／新聞稿內文。</div>
+    </section>
+
+    <section class="card dashCard" id="dashboard" style="margin-top: 14px;">
+      <h2>即時治理儀表板 (Governance Dashboards)</h2>
+      <p>我們已將抽象的復振目標轉化為可視化的即時數據系統，支援個人、社團至全台規模的治理需求。</p>
+      
+      <div class="dashGrid">
+        <a href="national-ops.html" class="dashItem">
+          <b>全台再生戰情室</b>
+          <span>National Ops Center</span>
+          <div class="btn btnPrimary" style="padding: 8px 0; font-size: 13px;">進入戰情室</div>
+        </a>
+        <a href="community-gov.html" class="dashItem">
+          <b>社團共造治理矩陣</b>
+          <span>Community Matrix</span>
+          <div class="btn btnPrimary" style="padding: 8px 0; font-size: 13px;">管理社團</div>
+        </a>
+        <a href="legacy-hall.html" class="dashItem">
+          <b>生命軌跡榮譽殿堂</b>
+          <span>Individual Legacy</span>
+          <div class="btn btnPrimary" style="padding: 8px 0; font-size: 13px;">查看榮譽牆</div>
+        </a>
+      </div>
+    </section>
+
+    <div class="grid">
+      <section class="card" id="thesis">
+        <h2>核心命題</h2>
+        <p>
+          語言的本質不是教材，而是「群體互動」。<br/>
+          當聲音被理解、被回應、被重複，語言就誕生；當家庭、市場、公共空間的交流結構瓦解，語言就失去生成能力。
+        </p>
+
+        <ul class="list">
+          <li class="li">
+            <div class="icon">①</div>
+            <div>
+              <b>聲音出現</b>
+              <span>讓語音重新進入生活節奏（每日任務／電台收聽）。</span>
+            </div>
+          </li>
+          <li class="li">
+            <div class="icon">②</div>
+            <div>
+              <b>群體理解</b>
+              <span>家庭與社團建立最小互動單位，讓語言「被回應」。</span>
+            </div>
+          </li>
+          <li class="li">
+            <div class="icon">③</div>
+            <div>
+              <b>重複使用</b>
+              <span>積分與紀錄可視化，使使用成為可見的社會行為。</span>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <aside class="card" id="why">
+        <h2>為何比傳統有效？</h2>
+        <p>
+          傳統：教材 → 上課 → 結束<br/>
+          我們：聲音 → 互動 → 重複 → 場域 → 數據 → 優化 → 再互動
+        </p>
+
+        <div class="hr"></div>
+
+        <h2 style="margin-top:14px;">語言消失的真正原因</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="t">
+              <strong>家庭停止使用</strong>
+              <span class="badge">生成單位崩解</span>
+            </div>
+            <p>語言失去日常互動的最小場域。</p>
+          </div>
+          <div class="step">
+            <div class="t">
+              <strong>場域交流瓦解</strong>
+              <span class="badge">工具失效</span>
+            </div>
+            <p>沒有群體回應，就不會形成穩定音義。</p>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <section class="card" id="model" style="margin-top:14px;">
+      <h2>五層平台模型：把語言誕生機制工程化</h2>
+      <ul class="list">
+        <li class="li">
+          <div class="icon">1</div>
+          <div>
+            <b>聲音啟動（學習層）</b>
+            <span>每日台語任務／電台收聽：讓聲音重新出現在生活裡。</span>
+          </div>
+        </li>
+        <li class="li">
+          <div class="icon">2</div>
+          <div>
+            <b>群體理解（家庭與社團）</b>
+            <span>家庭對話打卡／社團任務：家庭是最小生成單位。</span>
+          </div>
+        </li>
+        <li class="li">
+          <div class="icon">3</div>
+          <div>
+            <b>重複使用（打卡與積分）</b>
+            <span>任務紀錄／積分／排行榜：讓使用成為可見行為。</span>
+          </div>
+        </li>
+        <li class="li">
+          <div class="icon">4</div>
+          <div>
+            <b>固定場域（友善場域系統）</b>
+            <span>友善評分／地圖／實體打卡：讓語言走進生活。</span>
+          </div>
+        </li>
+        <li class="li">
+          <div class="icon">5</div>
+          <div>
+            <b>文化累積（數據治理層）</b>
+            <span>活躍指數／治理指標：把情感認同升級為數據指標。</span>
+          </div>
+        </li>
+      </ul>
+    </section>
+
+    <footer>
+      <div>© <span id="year"></span> 語言再生引擎｜官宣頁 v1</div>
+      <div class="mono">Built for: 外部發布 / 政策論述 / 專利敘事</div>
+    </footer>
+  </div>
+
+  <script>
+    const OFFICIAL_COPY = `官宣｜我們不是做語言App，而是在打造一套「語言再生引擎」
+——一套可被工程化的語言生成治理模型
+
+為台語文化續命
+為台灣開創文明
+
+1) 聲音啟動（學習層）：每日任務／聽台語／讀冊／電台收聽
+2) 群體理解（家庭與社團）：家庭對話打卡／社團共同任務
+3) 重複使用（打卡與積分）：任務紀錄／積分制度／公開排行榜
+4) 固定場域（友善場域系統）：友善評分／地圖／實體打卡
+5) 文化累積（數據治理層）：活躍指數／家庭語言指數／場域友善指數
+
+這是一個閉環生成系統：語言不再等待保存，而是主動生成。`;
+
+    const $ = (s)=>document.querySelector(s);
+    $("#year").textContent = new Date().getFullYear();
+
+    async function copyText(text){
+      try{
+        await navigator.clipboard.writeText(text);
+        toast("已複製官宣文案 ✅");
+      }catch(e){
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        toast("已複製官宣文案 ✅");
+      }
+    }
+
+    function toast(msg){
+      const t = document.createElement("div");
+      t.textContent = msg;
+      t.style.position="fixed"; t.style.left="50%"; t.style.bottom="18px";
+      t.style.transform="translateX(-50%)"; t.style.padding="10px 14px";
+      t.style.borderRadius="14px"; t.style.background="rgba(0,0,0,.55)";
+      t.style.border="1px solid rgba(255,255,255,.16)";
+      t.style.color="rgba(255,255,255,.92)"; t.style.backdropFilter="blur(10px)";
+      t.style.zIndex="9999"; t.style.fontWeight="700"; t.style.fontSize="13px";
+      document.body.appendChild(t);
+      setTimeout(()=>{ t.style.opacity="0"; t.style.transition="opacity .25s ease"; }, 1200);
+      setTimeout(()=>t.remove(), 1550);
+    }
+
+    document.querySelector("#btnCopy").addEventListener("click", ()=>copyText(OFFICIAL_COPY));
+
+    document.querySelector("#btnShare").addEventListener("click", async ()=>{
+      const data = {
+        title: "官宣｜語言再生引擎",
+        text: "為台語文化續命，為台灣開創文明。我們不是做語言App，而是在打造一套可工程化的語言生成治理模型。",
+        url: location.href
+      };
+      try{
+        if (navigator.share) await navigator.share(data);
+        else copyText(`${data.title}\n${data.text}\n${data.url}`);
+      }catch(e){}
+    });
+  </script>
+</body>
+</html>
