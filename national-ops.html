@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>咱兜的台語 - 全台戰情室首頁</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Serif TC', serif; background-color: #2F4F2F; color: #F5F5DC; overflow-x: hidden; }
+        .gold-text { color: #D4AF37; }
+        .gold-border { border-color: #D4AF37; }
+        .bg-dark-green { background-color: #1A361A; }
+        .stat-card { background: linear-gradient(145deg, #1A361A, #244224); border: 1px solid rgba(212, 175, 55, 0.2); }
+        .glow { text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
+        
+        /* 導航按鈕動畫 */
+        .btn-nav {
+            transition: all 0.3s ease;
+            background: rgba(212, 175, 55, 0.05);
+        }
+        .btn-nav:hover {
+            background: rgba(212, 175, 55, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-6">
+
+    <header class="flex flex-col lg:flex-row justify-between items-center mb-8 gap-6 border-b gold-border pb-6">
+        <div class="text-left flex items-start gap-4">
+            <a href="index.html" class="btn-nav border gold-border px-3 py-2 rounded-lg flex items-center gap-2 mt-1 shadow-inner">
+                <span class="text-lg">🏠</span>
+                <span class="text-xs gold-text font-bold tracking-tighter">回官宣首頁</span>
+            </a>
+
+            <div>
+                <h1 class="text-4xl font-bold gold-text tracking-widest glow">全台戰情室首頁</h1>
+                <p class="text-sm opacity-60 mt-2 italic">為台語，為台灣文化繼續打拼 — 數據即時觀測</p>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 w-full lg:w-auto">
+            <div class="stat-card p-4 rounded-xl text-center">
+                <p class="text-[10px] opacity-60 uppercase">全台總參與家庭</p>
+                <p class="text-2xl font-mono gold-text font-bold">1,280</p>
+            </div>
+            <div class="stat-card p-4 rounded-xl text-center">
+                <p class="text-[10px] opacity-60 uppercase">全台活躍社團</p>
+                <p class="text-2xl font-mono gold-text font-bold">42</p>
+            </div>
+            <div class="stat-card p-4 rounded-xl text-center">
+                <p class="text-[10px] opacity-60 uppercase">今日續命打卡</p>
+                <p class="text-2xl font-mono text-green-400 font-bold">542</p>
+            </div>
+            <div class="stat-card p-4 rounded-xl text-center">
+                <p class="text-[10px] opacity-60 uppercase">文化總積分</p>
+                <p class="text-2xl font-mono text-yellow-400 font-bold">852K</p>
+            </div>
+        </div>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        <div class="lg:col-span-8 bg-dark-green rounded-2xl border gold-border/20 overflow-hidden relative min-h-[500px] shadow-2xl">
+            <div class="absolute top-4 left-4 z-10 bg-black/60 p-3 rounded-lg border gold-border/30 text-xs">
+                <h3 class="gold-text font-bold mb-2">節點分佈：彰化 / 台中</h3>
+                <ul class="space-y-1 opacity-80">
+                    <li>🟢 教會節點: 12 處</li>
+                    <li>🔵 社區節點: 8 處</li>
+                    <li>🟡 示範據點: 5 處</li>
+                </ul>
+            </div>
+            <div class="w-full h-full bg-[#244224] flex items-center justify-center italic opacity-30">
+                <div class="text-center">
+                    <p class="text-4xl mb-4">🗺️</p>
+                    <p>全台友善環境地圖加載中...</p>
+                    <p class="text-xs mt-2">對接「14_節點主表」經緯度資料</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-4 space-y-6">
+            
+            <section class="bg-dark-green p-6 rounded-2xl border border-white/10 shadow-lg">
+                <h3 class="text-lg font-bold gold-text mb-4 flex items-center">
+                    <span class="mr-2">🏛️</span> 全台社團大榜 (TOP 10)
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                        <span class="font-bold text-yellow-500 w-6">1</span>
+                        <span class="flex-1 ml-2">彰化長老教會</span>
+                        <span class="font-mono gold-text">12,540</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                        <span class="font-bold text-gray-400 w-6">2</span>
+                        <span class="flex-1 ml-2">台語文創意園區</span>
+                        <span class="font-mono gold-text">11,210</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                        <span class="font-bold text-orange-600 w-6">3</span>
+                        <span class="flex-1 ml-2">員林路教會</span>
+                        <span class="font-mono gold-text">9,880</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-dark-green p-6 rounded-2xl border border-white/10 shadow-lg">
+                <h3 class="text-lg font-bold gold-text mb-4 flex items-center">
+                    <span class="mr-2">🏆</span> 全台家庭大榜 (TOP 10)
+                </h3>
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                        <span class="font-bold text-yellow-500 w-6">1</span>
+                        <span class="flex-1 ml-2 text-white">陳仕賢 家庭</span>
+                        <span class="font-mono gold-text">2,540</span>
+                    </div>
+                    <div class="flex justify-between items-center text-sm border-b border-white/5 pb-2">
+                        <span class="font-bold text-gray-400 w-6">2</span>
+                        <span class="flex-1 ml-2">李續命 家庭</span>
+                        <span class="font-mono gold-text">2,320</span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+
+        <div class="lg:col-span-12 bg-black/20 p-4 rounded-xl border gold-border/10 flex items-center gap-4 overflow-hidden">
+            <span class="bg-red-900/40 text-red-400 text-[10px] font-bold px-2 py-1 rounded whitespace-nowrap anim-pulse">LIVE 動態</span>
+            <marquee class="text-xs opacity-70">
+                [14:15] 陳仕賢 家庭 於 彰化長老教會 完成打卡 (+10分) &nbsp;&nbsp; | &nbsp;&nbsp; 
+                [14:10] 台語文創意園區 總積分突破 11,000 大關 &nbsp;&nbsp; | &nbsp;&nbsp; 
+                [13:55] 某用戶 提交 員林路教會 節點異常回報，管理員審核中...
+            </marquee>
+        </div>
+    </div>
+
+</body>
+</html>
