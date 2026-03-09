@@ -3,145 +3,551 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>咱兜的台語 - 全台戰情室首頁</title>
+    <title>咱兜的台語 - 全台戰情室</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Noto Serif TC', serif; background-color: #2F4F2F; color: #F5F5DC; overflow-x: hidden; }
-        .gold-text { color: #D4AF37; }
-        .gold-border { border-color: #D4AF37; }
-        .bg-dark-green { background-color: #1A361A; }
-        .stat-card { background: linear-gradient(145deg, #1A361A, #244224); border: 1px solid rgba(212, 175, 55, 0.2); }
-        .glow { text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
-        .btn-nav { transition: all 0.2s ease; background: rgba(212, 175, 55, 0.15); }
-        .btn-nav:hover { background: rgba(212, 175, 55, 0.3); transform: scale(0.95); }
-        
-        /* 戰情室專用地圖濾鏡 */
-        .leaflet-container { background: #1a361a !important; border-radius: 1rem; }
-        .leaflet-tile-container { filter: brightness(0.5) invert(1) contrast(1.2) sepia(0.5) hue-rotate(80deg); }
+        :root {
+            --gold: #D4AF37;
+            --gold-dim: rgba(212,175,55,0.3);
+            --dark: #1A361A;
+            --bg: #0f2210;
+            --surface: #162b16;
+            --green-glow: rgba(34,197,94,0.15);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Noto Serif TC', serif;
+            background-color: var(--bg);
+            color: #e8e8d8;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* ── 掃描線效果 ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.03) 2px,
+                rgba(0,0,0,0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        .gold { color: var(--gold); }
+        .gold-border { border-color: var(--gold); }
+        .mono { font-family: 'Share Tech Mono', monospace; }
+
+        /* ── KPI 卡 ── */
+        .kpi-card {
+            background: var(--surface);
+            border: 1px solid var(--gold-dim);
+            border-radius: 8px;
+            padding: 12px 16px;
+            position: relative;
+            overflow: hidden;
+            transition: border-color 0.3s;
+        }
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 3px; height: 100%;
+            background: var(--gold);
+        }
+        .kpi-card:hover { border-color: var(--gold); }
+        .kpi-value { font-family: 'Share Tech Mono', monospace; font-size: 1.6rem; color: var(--gold); line-height: 1; }
+        .kpi-label { font-size: 0.65rem; opacity: 0.55; letter-spacing: 0.08em; text-transform: uppercase; margin-top: 4px; }
+        .kpi-sub { font-size: 0.7rem; color: #4ade80; margin-top: 2px; font-family: 'Share Tech Mono', monospace; }
+
+        /* ── 地圖容器 ── */
+        .leaflet-container { background: #0a1a0a !important; border-radius: 12px; }
+        .leaflet-tile-container { filter: brightness(0.45) saturate(0.3) hue-rotate(80deg); }
+        .leaflet-popup-content-wrapper {
+            background: var(--dark);
+            color: #e8e8d8;
+            border: 1px solid var(--gold);
+            border-radius: 6px;
+        }
+        .leaflet-popup-tip { background: var(--dark); }
+
+        /* ── 排行榜 ── */
+        .rank-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 4px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+        .rank-row:hover { background: rgba(212,175,55,0.05); }
+        .rank-num { width: 28px; font-family: 'Share Tech Mono', monospace; color: rgba(212,175,55,0.5); font-size: 0.75rem; }
+        .rank-num.top1 { color: #FFD700; }
+        .rank-num.top2 { color: #C0C0C0; }
+        .rank-num.top3 { color: #CD7F32; }
+        .rank-score { margin-left: auto; font-family: 'Share Tech Mono', monospace; color: var(--gold); font-size: 0.8rem; }
+
+        /* ── 跑馬燈 ── */
+        .ticker-wrap { overflow: hidden; white-space: nowrap; }
+        .ticker-inner { display: inline-block; animation: ticker 30s linear infinite; }
+        @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+        /* ── 脈衝點 ── */
+        .pulse-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            display: inline-block;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* ── 按鈕 ── */
+        .btn-nav {
+            border: 1px solid var(--gold-dim);
+            color: var(--gold);
+            font-size: 0.7rem;
+            padding: 5px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            letter-spacing: 0.1em;
+        }
+        .btn-nav:hover { border-color: var(--gold); background: rgba(212,175,55,0.1); }
+
+        /* ── 區塊標題 ── */
+        .section-title {
+            font-size: 0.7rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--gold);
+            opacity: 0.8;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--gold-dim);
+        }
+
+        /* ── 載入動畫 ── */
+        .loading-spinner {
+            width: 20px; height: 20px;
+            border: 2px solid var(--gold-dim);
+            border-top-color: var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ── 進度條 ── */
+        .progress-bar {
+            height: 3px;
+            background: var(--gold-dim);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--gold);
+            border-radius: 2px;
+            transition: width 1s ease;
+        }
+
+        /* ── 節點標記自訂 ── */
+        .node-label {
+            background: rgba(26,54,26,0.9);
+            border: 1px solid var(--gold);
+            color: #e8e8d8;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 768px) {
+            .kpi-value { font-size: 1.2rem; }
+        }
     </style>
 </head>
-<body class="p-4 md:p-6">
+<body>
 
-    <header class="flex flex-col lg:flex-row justify-between items-center mb-6 gap-4 border-b gold-border pb-6">
-        <div class="text-left flex items-start gap-3">
-            <a href="index.html" class="btn-nav border gold-border px-2 py-1 rounded flex items-center gap-1 mt-1 shadow-sm">
-                <span class="text-xs">🏠</span>
-                <span class="text-[9px] gold-text font-bold uppercase">Home</span>
-            </a>
+    <!-- ══ HEADER ══════════════════════════════════════════ -->
+    <header style="padding: 12px 20px; border-bottom: 1px solid var(--gold-dim); background: rgba(15,34,16,0.98); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 1000;">
+        <div style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
+            
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <a href="index.html" class="btn-nav">🏠 首頁</a>
+                <div>
+                    <div style="font-size: 1rem; font-weight: bold; color: var(--gold); letter-spacing: 0.2em;">全台戰情室</div>
+                    <div style="font-size: 0.6rem; opacity: 0.45; letter-spacing: 0.1em;">NATIONAL OPERATIONS CENTER</div>
+                </div>
+            </div>
 
-            <div>
-                <h1 class="text-2xl md:text-3xl font-bold gold-text tracking-widest glow">全台戰情室首頁</h1>
-                <p class="text-[10px] md:text-xs opacity-60 mt-1 italic">數據即時觀測 · 彰化示範區</p>
+            <!-- KPI 快覽 -->
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="header-kpi">
+                <div class="kpi-card" style="min-width: 90px;">
+                    <div class="kpi-value" id="kpi-families">—</div>
+                    <div class="kpi-label">參與家庭</div>
+                </div>
+                <div class="kpi-card" style="min-width: 90px;">
+                    <div class="kpi-value" id="kpi-checkins">—</div>
+                    <div class="kpi-label">今日打卡</div>
+                    <div class="kpi-sub" id="kpi-checkins-sub"></div>
+                </div>
+                <div class="kpi-card" style="min-width: 90px;">
+                    <div class="kpi-value" id="kpi-learning">—</div>
+                    <div class="kpi-label">學習紀錄</div>
+                </div>
+                <div class="kpi-card" style="min-width: 90px;">
+                    <div class="kpi-value" id="kpi-nodes">—</div>
+                    <div class="kpi-label">台語節點</div>
+                </div>
             </div>
-        </div>
-        
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 w-full lg:w-auto">
-            <div class="stat-card p-2 px-4 rounded-lg text-center">
-                <p class="text-[8px] opacity-60 uppercase">總參與家庭</p>
-                <p class="text-lg font-mono gold-text font-bold">1,280</p>
-            </div>
-            <div class="stat-card p-2 px-4 rounded-lg text-center">
-                <p class="text-[8px] opacity-60 uppercase">活躍社團</p>
-                <p class="text-lg font-mono gold-text font-bold">42</p>
-            </div>
-            <div class="stat-card p-2 px-4 rounded-lg text-center">
-                <p class="text-[8px] opacity-60 uppercase">今日打卡</p>
-                <p class="text-lg font-mono text-green-400 font-bold">542</p>
-            </div>
-            <div class="stat-card p-2 px-4 rounded-lg text-center">
-                <p class="text-[8px] opacity-60 uppercase">總積分</p>
-                <p class="text-lg font-mono text-yellow-400 font-bold">852K</p>
+
+            <!-- 狀態 -->
+            <div style="font-size: 0.65rem; opacity: 0.5; text-align: right;">
+                <div style="display: flex; align-items: center; gap: 6px; justify-content: flex-end;">
+                    <span class="pulse-dot" id="status-dot" style="background: #555;"></span>
+                    <span id="status-text">資料載入中...</span>
+                </div>
+                <div id="last-updated" style="margin-top: 2px; font-family: 'Share Tech Mono', monospace;"></div>
             </div>
         </div>
     </header>
 
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        <div class="lg:col-span-8 bg-dark-green rounded-2xl border gold-border/20 overflow-hidden relative min-h-[400px] shadow-2xl">
-            <div class="absolute top-3 left-3 z-[1000] bg-black/80 p-2 px-3 rounded border gold-border/30 text-[10px] pointer-events-none">
-                <h3 class="gold-text font-bold mb-1">區域：彰化市中心</h3>
-                <div class="flex gap-3 opacity-90">
-                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-green-500 mr-1"></span> 教會</span>
-                    <span class="flex items-center"><span class="w-2 h-2 rounded-full bg-blue-500 mr-1"></span> 園區</span>
+    <!-- ══ MAIN ══════════════════════════════════════════ -->
+    <main style="max-width: 1400px; margin: 0 auto; padding: 16px 20px; display: grid; grid-template-columns: 1fr 320px; grid-template-rows: auto auto auto; gap: 16px;">
+
+        <!-- 地圖 -->
+        <div style="grid-column: 1; grid-row: 1 / 3; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; overflow: hidden; min-height: 480px; position: relative;">
+            <div style="position: absolute; top: 12px; left: 12px; z-index: 1000; background: rgba(15,34,16,0.9); border: 1px solid var(--gold-dim); padding: 8px 12px; border-radius: 6px; font-size: 0.65rem; pointer-events: none;">
+                <div style="color: var(--gold); font-weight: bold; margin-bottom: 4px; letter-spacing: 0.1em;">台語友善節點地圖</div>
+                <div style="display: flex; gap: 10px; opacity: 0.7;">
+                    <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block;"></span>教會</span>
+                    <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; display: inline-block;"></span>文化</span>
+                    <span style="display: flex; align-items: center; gap: 4px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; display: inline-block;"></span>其他</span>
                 </div>
             </div>
-            <div id="map" class="w-full h-full" style="min-height: 400px;"></div>
+            <div id="map" style="width: 100%; height: 100%; min-height: 480px;"></div>
         </div>
 
-        <div class="lg:col-span-4 space-y-4">
-            <section class="bg-dark-green p-4 rounded-xl border border-white/10">
-                <h3 class="text-sm font-bold gold-text mb-3 flex items-center">🏛️ 社團大榜 (彰化)</h3>
-                <div class="space-y-2 text-xs">
-                    <div class="flex justify-between border-b border-white/5 pb-1">
-                        <span class="text-yellow-500">01</span>
-                        <span class="flex-1 ml-2">彰化長老教會</span>
-                        <span class="font-mono gold-text">12,540</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">02</span>
-                        <span class="flex-1 ml-2">台語文創意園區</span>
-                        <span class="font-mono gold-text">11,210</span>
-                    </div>
+        <!-- 右欄：社團排行 -->
+        <div style="grid-column: 2; grid-row: 1; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
+            <div class="section-title">🏛️ 社團積分榜</div>
+            <div id="social-ranking">
+                <div style="text-align: center; padding: 20px; opacity: 0.4;"><span class="loading-spinner"></span></div>
+            </div>
+        </div>
+
+        <!-- 右欄：家庭排行 -->
+        <div style="grid-column: 2; grid-row: 2; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
+            <div class="section-title">🏆 家庭積分榜</div>
+            <div id="family-ranking">
+                <div style="text-align: center; padding: 20px; opacity: 0.4;"><span class="loading-spinner"></span></div>
+            </div>
+        </div>
+
+        <!-- 底部：活動分佈 + 熱門地點 -->
+        <div style="grid-column: 1 / 3; grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+
+            <div style="background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
+                <div class="section-title">📊 學習活動分佈</div>
+                <div id="activity-breakdown">
+                    <div style="text-align: center; padding: 20px; opacity: 0.4;"><span class="loading-spinner"></span></div>
                 </div>
-            </section>
+            </div>
 
-            <section class="bg-dark-green p-4 rounded-xl border border-white/10">
-                <h3 class="text-sm font-bold gold-text mb-3 flex items-center">🏆 領先家庭</h3>
-                <div class="space-y-2 text-xs">
-                    <div class="flex justify-between border-b border-white/5 pb-1">
-                        <span class="text-yellow-500">01</span>
-                        <span class="flex-1 ml-2">陳仕賢 家庭</span>
-                        <span class="font-mono gold-text">2,540</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span class="text-gray-400">02</span>
-                        <span class="flex-1 ml-2">李續命 家庭</span>
-                        <span class="font-mono gold-text">2,320</span>
-                    </div>
+            <div style="background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
+                <div class="section-title">📍 熱門打卡場所</div>
+                <div id="top-places">
+                    <div style="text-align: center; padding: 20px; opacity: 0.4;"><span class="loading-spinner"></span></div>
                 </div>
-            </section>
+            </div>
         </div>
+    </main>
 
-        <div class="lg:col-span-12 bg-black/30 p-2 px-4 rounded-lg border gold-border/10 flex items-center gap-4 overflow-hidden">
-            <span class="text-red-500 text-[9px] font-bold animate-pulse whitespace-nowrap">● LIVE</span>
-            <marquee class="text-[10px] opacity-60">
-                [14:15] 陳仕賢 家庭 完成打卡 (+10分) &nbsp;&nbsp; | &nbsp;&nbsp; 
-                [14:10] 台語文創意園區 總積分突破 11,000 &nbsp;&nbsp; | &nbsp;&nbsp; 
-                [13:55] 管理員已核准新節點：員林路教會
-            </marquee>
+    <!-- ══ 跑馬燈 ══════════════════════════════════════════ -->
+    <footer style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(10,26,10,0.95); border-top: 1px solid var(--gold-dim); padding: 6px 0; z-index: 1000;">
+        <div style="display: flex; align-items: center; gap: 12px; padding: 0 16px;">
+            <span style="color: #ef4444; font-size: 0.65rem; font-weight: bold; letter-spacing: 0.1em; white-space: nowrap; display: flex; align-items: center; gap: 4px;">
+                <span class="pulse-dot" style="width: 6px; height: 6px; background: #ef4444;"></span> LIVE
+            </span>
+            <div class="ticker-wrap" style="flex: 1; font-size: 0.7rem; opacity: 0.55; font-family: 'Share Tech Mono', monospace;">
+                <div class="ticker-inner" id="ticker-content">
+                    載入中... &nbsp;&nbsp;&nbsp;
+                </div>
+            </div>
         </div>
-    </div>
+    </footer>
+
+    <div style="height: 40px;"></div><!-- footer 墊高 -->
 
     <script>
-        // 使用 setTimeout 確保容器寬高已就緒
-        setTimeout(() => {
-            const map = L.map('map', {
-                zoomControl: false,
-                attributionControl: false
-            }).setView([24.075, 120.544], 14);
+    // ══ 設定 ════════════════════════════════════════════════
+    // ⚠️ 替換為你的 GAS Web App URL
+    const GAS_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    // 若無法連 GAS，使用此 fallback 資料（根據真實 xlsx 預設）
+    const FALLBACK_DATA = {
+        success: true,
+        generatedAt: '2026-03-08 (fallback)',
+        kpi: {
+            familyCount: 5,
+            todayActiveCount: 1,
+            totalCheckins: 62,
+            todayCheckins: 1,
+            totalLearning: 436,
+            todayLearning: 0,
+            avgStreakDays: 1.8,
+            nodeCount: 4,
+            totalRadioMin: 43,
+        },
+        nodes: [
+            { nodeId: 'NODE-002', name: '永福教會',     category: 'church', lat: 24.0799, lng: 120.5450, score: 8.1,  desc: '主日禮拜全台語' },
+            { nodeId: 'NODE-003', name: '台語文創意園區', category: 'park',   lat: 24.0775, lng: 120.5574, score: 10.5, desc: '台語文化園區學習場所' },
+            { nodeId: 'NODE-004', name: '彰化教會',     category: 'church', lat: 24.0786, lng: 120.5392, score: 7.2,  desc: '主日禮拜全台語' },
+            { nodeId: 'NODE-005', name: '北斗教會',     category: 'church', lat: 23.8703, lng: 120.5254, score: 6.8,  desc: '主日禮拜全程台語' },
+        ],
+        socialRanking: [
+            { name: '台語文創意園區', score: 2840 },
+            { name: '彰化教會',       score: 1560 },
+        ],
+        familyRanking: [
+            { name: '陳冰',  score: 2840 },
+            { name: '陳仕賓', score: 520 },
+        ],
+        topPlaces: [
+            { name: '台語文創意園區', count: 18 },
+            { name: '台語文化讀書會', count: 17 },
+            { name: '彰化東門長老教會', count: 4 },
+            { name: '員林長老教會', count: 5 },
+            { name: '台中台語社區大學', count: 3 },
+        ],
+        activityBreakdown: {
+            reading_text: 320,
+            audio_recording: 80,
+            video_watch: 36,
+        }
+    };
 
-            // 僅顯示彰化市中心 2 個代表節點
-            const demoNodes = [
-                { pos: [24.0815, 120.5385], color: "#22c55e", title: "彰化長老教會" },
-                { pos: [24.0725, 120.5512], color: "#3b82f6", title: "台語文創意園區" }
-            ];
+    // ══ 地圖初始化 ═══════════════════════════════════════════
+    let map;
+    setTimeout(() => {
+        map = L.map('map', {
+            zoomControl: true,
+            attributionControl: false,
+        }).setView([24.0785, 120.5435], 13);
 
-            demoNodes.forEach(node => {
-                L.circleMarker(node.pos, {
-                    radius: 9,
-                    fillColor: node.color,
-                    color: "#D4AF37",
-                    weight: 1,
-                    opacity: 1,
-                    fillOpacity: 0.9
-                }).addTo(map).bindPopup(`<b style="color:#1A361A">${node.title}</b>`);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    }, 200);
+
+    function categoryColor(cat) {
+        if (cat === 'church') return '#22c55e';
+        if (cat === 'park' || cat === 'store') return '#3b82f6';
+        return '#f59e0b';
+    }
+
+    function renderNodes(nodes) {
+        if (!map) return;
+        nodes.forEach(node => {
+            const circle = L.circleMarker([node.lat, node.lng], {
+                radius: 10,
+                fillColor: categoryColor(node.category),
+                color: '#D4AF37',
+                weight: 1.5,
+                opacity: 1,
+                fillOpacity: 0.85
+            }).addTo(map);
+
+            circle.bindPopup(`
+                <div style="font-size:13px;">
+                    <div style="color:#D4AF37; font-weight:bold; margin-bottom:4px;">${node.name}</div>
+                    <div style="opacity:0.8; margin-bottom:4px;">${node.desc || ''}</div>
+                    <div style="font-size:11px; opacity:0.5;">評分：${node.score.toFixed(1)} / 100</div>
+                </div>
+            `);
+        });
+
+        // 自動調整視野
+        if (nodes.length > 0) {
+            const bounds = L.latLngBounds(nodes.map(n => [n.lat, n.lng]));
+            map.fitBounds(bounds, { padding: [40, 40] });
+        }
+    }
+
+    // ══ 渲染函式 ═════════════════════════════════════════════
+    function renderKPI(kpi) {
+        document.getElementById('kpi-families').textContent  = kpi.familyCount;
+        document.getElementById('kpi-checkins').textContent  = kpi.todayCheckins;
+        document.getElementById('kpi-checkins-sub').textContent = `累計 ${kpi.totalCheckins}`;
+        document.getElementById('kpi-learning').textContent  = kpi.totalLearning;
+        document.getElementById('kpi-nodes').textContent     = kpi.nodeCount;
+    }
+
+    function renderRanking(containerId, data, maxScore) {
+        const el = document.getElementById(containerId);
+        if (!data || data.length === 0) {
+            el.innerHTML = '<div style="opacity:0.4; text-align:center; padding:12px; font-size:0.8rem;">暫無資料</div>';
+            return;
+        }
+        el.innerHTML = data.map((item, i) => {
+            const pct = maxScore > 0 ? (item.score / maxScore * 100) : 0;
+            const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+            return `
+                <div class="rank-row">
+                    <span class="rank-num ${rankClass}">${String(i+1).padStart(2,'0')}</span>
+                    <span style="flex:1; padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</span>
+                    <span class="rank-score">${item.score.toLocaleString()}</span>
+                </div>
+                <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+            `;
+        }).join('');
+    }
+
+    function renderActivityBreakdown(data) {
+        const el = document.getElementById('activity-breakdown');
+        if (!data || Object.keys(data).length === 0) {
+            el.innerHTML = '<div style="opacity:0.4; text-align:center; padding:12px;">暫無資料</div>';
+            return;
+        }
+        const labelMap = {
+            reading_text:      '📖 文字閱讀',
+            audio_recording:   '🎙️ 語音朗讀',
+            video_watch:       '📺 影片觀看',
+            image_view:        '🖼️ 圖片學習',
+            radio_listen:      '📻 廣播收聽',
+            book_reading:      '📕 繪本閱讀',
+        };
+        const entries = Object.entries(data).sort((a,b) => b[1]-a[1]);
+        const maxVal  = entries[0]?.[1] || 1;
+        el.innerHTML = entries.map(([key, count]) => {
+            const label = labelMap[key] || key;
+            const pct   = (count / maxVal * 100).toFixed(0);
+            return `
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
+                        <span>${label}</span>
+                        <span class="mono" style="color: var(--gold);">${count}</span>
+                    </div>
+                    <div class="progress-bar" style="height: 4px;">
+                        <div class="progress-fill" style="width:${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function renderTopPlaces(data) {
+        const el = document.getElementById('top-places');
+        if (!data || data.length === 0) {
+            el.innerHTML = '<div style="opacity:0.4; text-align:center; padding:12px;">暫無資料</div>';
+            return;
+        }
+        const maxCount = data[0]?.count || 1;
+        el.innerHTML = data.map((place, i) => {
+            const pct = (place.count / maxCount * 100).toFixed(0);
+            return `
+                <div style="margin-bottom: 10px;">
+                    <div style="display: flex; gap: 8px; align-items: center; font-size: 0.78rem; margin-bottom: 4px;">
+                        <span style="color: var(--gold); font-family: 'Share Tech Mono', monospace; font-size: 0.65rem; width:18px;">${i+1}</span>
+                        <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${place.name}</span>
+                        <span class="mono" style="color: var(--gold);">${place.count} 次</span>
+                    </div>
+                    <div class="progress-bar" style="height: 4px;">
+                        <div class="progress-fill" style="width:${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function updateTicker(data) {
+        const kpi = data.kpi;
+        const social = data.socialRanking?.[0];
+        const family = data.familyRanking?.[0];
+        const parts = [
+            `📊 系統統計 | 總家庭：${kpi.familyCount} 戶`,
+            `🔥 今日打卡：${kpi.todayCheckins} 次（累計 ${kpi.totalCheckins} 次）`,
+            `📖 學習紀錄：${kpi.totalLearning} 筆`,
+            `🌱 友善節點：${kpi.nodeCount} 個`,
+            `📻 廣播收聽：${kpi.totalRadioMin} 分鐘`,
+            social ? `🏛️ 社團第一：${social.name}（${social.score.toLocaleString()} 分）` : '',
+            family ? `🏆 家庭第一：${family.name}（${family.score.toLocaleString()} 分）` : '',
+            `⏱️ 更新時間：${data.generatedAt}`,
+        ].filter(Boolean);
+
+        const text = parts.join('　　 ·　　 ') + '　　　';
+        const el = document.getElementById('ticker-content');
+        el.innerHTML = text + text; // 複製一份讓跑馬燈無縫循環
+    }
+
+    // ══ 資料載入 ═════════════════════════════════════════════
+    async function loadData() {
+        const statusDot  = document.getElementById('status-dot');
+        const statusText = document.getElementById('status-text');
+        const lastUp     = document.getElementById('last-updated');
+
+        try {
+            const resp = await fetch(`${GAS_URL}?action=getNationalStats`, {
+                method: 'GET',
+                redirect: 'follow',
             });
-        }, 300);
+            const data = await resp.json();
+
+            if (!data.success) throw new Error(data.error || '資料錯誤');
+
+            applyData(data);
+            statusDot.style.background  = '#22c55e';
+            statusText.textContent      = '資料即時同步';
+            lastUp.textContent          = data.generatedAt;
+
+        } catch (err) {
+            console.warn('無法連接 GAS，使用 fallback 資料:', err.message);
+            applyData(FALLBACK_DATA);
+            statusDot.style.background  = '#f59e0b';
+            statusText.textContent      = 'DEMO 模式（離線資料）';
+            lastUp.textContent          = FALLBACK_DATA.generatedAt;
+        }
+    }
+
+    function applyData(data) {
+        renderKPI(data.kpi);
+        renderNodes(data.nodes || []);
+
+        const maxSocial = data.socialRanking?.[0]?.score || 1;
+        const maxFamily = data.familyRanking?.[0]?.score || 1;
+        renderRanking('social-ranking', data.socialRanking, maxSocial);
+        renderRanking('family-ranking', data.familyRanking, maxFamily);
+        renderActivityBreakdown(data.activityBreakdown);
+        renderTopPlaces(data.topPlaces);
+        updateTicker(data);
+    }
+
+    // 啟動
+    loadData();
+    // 每 5 分鐘自動更新
+    setInterval(loadData, 5 * 60 * 1000);
     </script>
 </body>
 </html>
