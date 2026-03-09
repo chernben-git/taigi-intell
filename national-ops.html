@@ -206,6 +206,12 @@
             white-space: nowrap;
         }
 
+        /* 我的標記 */
+        .my-mark { display:inline-block; background:var(--gold); color:#1A361A; font-size:9px; font-weight:bold; padding:1px 5px; border-radius:3px; margin-left:6px; vertical-align:middle; }
+        .rank-row.mine { background: rgba(212,175,55,0.08); border-left: 2px solid var(--gold); }
+        /* 我的節點星號 */
+        .my-node-marker { filter: drop-shadow(0 0 6px #D4AF37); }
+
         @media (max-width: 768px) {
             .kpi-value { font-size: 1.2rem; }
         }
@@ -426,7 +432,7 @@
         document.getElementById('kpi-nodes').textContent     = kpi.nodeCount;
     }
 
-    function renderRanking(containerId, data, maxScore) {
+    function renderRanking(containerId, data, maxScore, myName) {
         const el = document.getElementById(containerId);
         if (!data || data.length === 0) {
             el.innerHTML = '<div style="opacity:0.4; text-align:center; padding:12px; font-size:0.8rem;">暫無資料</div>';
@@ -435,10 +441,11 @@
         el.innerHTML = data.map((item, i) => {
             const pct = maxScore > 0 ? (item.score / maxScore * 100) : 0;
             const rankClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+            const isMe = myName && item.name === myName;
             return `
-                <div class="rank-row">
+                <div class="rank-row${isMe ? ' mine' : ''}">
                     <span class="rank-num ${rankClass}">${String(i+1).padStart(2,'0')}</span>
-                    <span style="flex:1; padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</span>
+                    <span style="flex:1; padding: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}${isMe ? '<span class="my-mark">我</span>' : ''}</span>
                     <span class="rank-score">${item.score.toLocaleString()}</span>
                 </div>
                 <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
@@ -524,19 +531,33 @@
     }
 
     // ══ 資料載入 ═════════════════════════════════════════════
+    // 從 URL 取得 fid
+    const URL_PARAMS   = new URLSearchParams(window.location.search);
+    const MY_FID       = URL_PARAMS.get('fid') || '';
+    let   myFamilyName = '';
+    let   mySocialName = '';
+    let   myCheckinNodes = new Set();  // 我打卡過的節點 ID
+
     async function loadData() {
         const statusDot  = document.getElementById('status-dot');
         const statusText = document.getElementById('status-text');
         const lastUp     = document.getElementById('last-updated');
 
         try {
-            const resp = await fetch(`${GAS_URL}?action=getNationalStats`, {
-                method: 'GET',
-                redirect: 'follow',
-            });
-            const data = await resp.json();
+            // 同時抓全台資料 + 個人資料（有 fid 才抓）
+            const reqs = [fetch(`${GAS_URL}?action=getNationalStats`, {redirect:'follow'})];
+            if (MY_FID) reqs.push(fetch(`${GAS_URL}?action=getFamilyDetail&fid=${encodeURIComponent(MY_FID)}`, {redirect:'follow'}));
+
+            const ress = await Promise.all(reqs);
+            const [data, famData] = await Promise.all(ress.map(r => r.json()));
 
             if (!data.success) throw new Error(data.error || '資料錯誤');
+
+            // 記錄個人資訊
+            if (famData && famData.success) {
+                myFamilyName = famData.family.familyName;
+                mySocialName = famData.family.socialName;
+            }
 
             applyData(data);
             statusDot.style.background  = '#22c55e';
@@ -545,6 +566,11 @@
 
         } catch (err) {
             console.warn('無法連接 GAS，使用 fallback 資料:', err.message);
+            // fallback 時若有 fid 也嘗試設定預設值
+            if (MY_FID === 'F177124937338') {
+                myFamilyName = '陳仕賓';
+                mySocialName = '台語文創意園區';
+            }
             applyData(FALLBACK_DATA);
             statusDot.style.background  = '#f59e0b';
             statusText.textContent      = 'DEMO 模式（離線資料）';
@@ -558,8 +584,8 @@
 
         const maxSocial = data.socialRanking?.[0]?.score || 1;
         const maxFamily = data.familyRanking?.[0]?.score || 1;
-        renderRanking('social-ranking', data.socialRanking, maxSocial);
-        renderRanking('family-ranking', data.familyRanking, maxFamily);
+        renderRanking('social-ranking', data.socialRanking, maxSocial, mySocialName);
+        renderRanking('family-ranking', data.familyRanking, maxFamily, myFamilyName);
         renderActivityBreakdown(data.activityBreakdown);
         renderTopPlaces(data.topPlaces);
         updateTicker(data);
