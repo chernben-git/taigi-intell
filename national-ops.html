@@ -459,19 +459,35 @@
             el.innerHTML = '<div style="opacity:0.4; text-align:center; padding:12px;">暫無資料</div>';
             return;
         }
-        const labelMap = {
-            reading_text:      '📖 文字閱讀',
-            audio_recording:   '🎙️ 語音朗讀',
-            video_watch:       '📺 影片觀看',
-            image_view:        '🖼️ 圖片學習',
-            radio_listen:      '📻 廣播收聽',
-            book_reading:      '📕 繪本閱讀',
+
+        // 合併同類型 → 六大類
+        const mergeMap = {
+            '📖 閱讀學習': ['reading_text','reading_started','reading_completed','content_view','book_opened','book_reading'],
+            '🎙️ 語音朗讀': ['audio_recording','checkin_audio','audio_listening','audio_confirmed'],
+            '🖼️ 圖片學習': ['image_view','image_viewing','image_confirmed'],
+            '📺 影片觀看': ['video_watch','video_watching'],
+            '📻 廣播收聽': ['radio_listen','radio_listening'],
+            '📍 打卡活動': ['checkin','location_checkin','checkin_completed'],
         };
-        const entries = Object.entries(data).sort((a,b) => b[1]-a[1]);
+
+        const merged = {};
+        for (const [label, keys] of Object.entries(mergeMap)) {
+            const total = keys.reduce((s, k) => s + (data[k] || 0), 0);
+            if (total > 0) merged[label] = total;
+        }
+        // 未對應的 key 歸入「其他」
+        const mappedKeys = Object.values(mergeMap).flat();
+        let otherTotal = 0;
+        for (const [k, v] of Object.entries(data)) {
+            if (!mappedKeys.includes(k)) otherTotal += v;
+        }
+        if (otherTotal > 0) merged['⚙️ 其他活動'] = otherTotal;
+
+        const entries = Object.entries(merged).sort((a,b) => b[1]-a[1]);
         const maxVal  = entries[0]?.[1] || 1;
-        el.innerHTML = entries.map(([key, count]) => {
-            const label = labelMap[key] || key;
-            const pct   = (count / maxVal * 100).toFixed(0);
+
+        el.innerHTML = entries.map(([label, count]) => {
+            const pct = (count / maxVal * 100).toFixed(0);
             return `
                 <div style="margin-bottom: 10px;">
                     <div style="display: flex; justify-content: space-between; font-size: 0.78rem; margin-bottom: 4px;">
