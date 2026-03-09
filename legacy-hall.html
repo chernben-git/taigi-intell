@@ -13,15 +13,15 @@
         .gold-border { border-color: #D4AF37; }
         .bg-dark-green { background-color: #1A361A; }
         .tab-active { background-color: #D4AF37; color: #1A361A; font-weight: bold; }
-        /* 新增回官宣按鈕效果 */
-        .btn-nav {
-            transition: all 0.3s ease;
-            background: rgba(212, 175, 55, 0.05);
-        }
-        .btn-nav:hover {
-            background: rgba(212, 175, 55, 0.15);
-            transform: translateY(-2px);
-        }
+        .btn-nav { transition: all 0.3s ease; background: rgba(212, 175, 55, 0.05); }
+        .btn-nav:hover { background: rgba(212, 175, 55, 0.15); transform: translateY(-2px); }
+        /* 載入 skeleton */
+        .skeleton { background: linear-gradient(90deg, #1a361a 25%, #243d24 50%, #1a361a 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        /* 離線標記 */
+        .offline-badge { display: none; }
+        .offline-mode .offline-badge { display: inline-flex; }
+        .offline-mode .live-badge { display: none; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -32,36 +32,49 @@
                 <span>🏠</span> 返回官宣首頁
             </a>
         </div>
-
-        <h1 class="text-4xl md:text-5xl font-bold mb-4 tracking-[0.2em] gold-text">咱兜的台語</h1>
-        <div class="flex flex-col gap-1 text-sm md:text-lg opacity-90 italic">
+        <h1 class="text-4xl md:text-5xl font-bold mb-2 tracking-[0.2em] gold-text">咱兜的台語</h1>
+        <div class="flex flex-col gap-1 text-sm md:text-lg opacity-90 italic mb-3">
             <p>為台語文化續命</p>
             <p>為台灣開創文明</p>
+        </div>
+        <div class="flex justify-center gap-2 flex-wrap">
+            <span class="live-badge inline-flex items-center gap-1 text-[10px] bg-green-900/60 text-green-400 px-2 py-1 rounded-full border border-green-500/30">
+                <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span> 即時資料
+            </span>
+            <span class="offline-badge items-center gap-1 text-[10px] bg-yellow-900/60 text-yellow-400 px-2 py-1 rounded-full border border-yellow-500/30">
+                ⚡ 離線示範模式
+            </span>
         </div>
     </header>
 
     <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
+
+        <!-- 左欄：家庭資訊 + 勳章 -->
         <div class="lg:col-span-4 space-y-6">
             <div class="bg-dark-green border-2 gold-border rounded-xl p-6 shadow-2xl">
                 <div class="text-center">
                     <div class="text-6xl mb-4">🧧</div>
-                    <h2 id="familyName" class="text-3xl font-bold gold-text mb-1">陳仕賢 家庭</h2>
-                    <p class="text-xs opacity-60">ID: F177124937338</p>
+                    <h2 id="familyName" class="text-3xl font-bold gold-text mb-1 skeleton h-8 w-40 mx-auto">　</h2>
+                    <p id="familyId" class="text-xs opacity-60 mt-2">載入中...</p>
+                    <p id="familySocial" class="text-xs opacity-50 mt-1"></p>
                 </div>
                 <div class="mt-8 space-y-4">
                     <div class="flex justify-between items-center border-b border-white/10 pb-2">
                         <span>連續續命天數</span>
-                        <span class="text-2xl font-mono text-orange-400">🔥 4 天</span>
+                        <span id="streakDays" class="text-2xl font-mono text-orange-400">－</span>
                     </div>
                     <div class="flex justify-between items-center border-b border-white/10 pb-2">
                         <span>文化總積分</span>
-                        <span class="text-2xl font-mono text-yellow-400">🏆 1250</span>
+                        <span id="totalScore" class="text-2xl font-mono text-yellow-400">－</span>
+                    </div>
+                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
+                        <span>累積打卡次數</span>
+                        <span id="totalCheckins" class="text-xl font-mono text-green-400">－</span>
                     </div>
                     <div class="flex justify-between items-center">
                         <span>語言參與度</span>
                         <div class="flex flex-col items-end">
-                            <span class="px-3 py-1 gold-border border bg-transparent gold-text rounded-full text-sm font-bold">積極參與</span>
+                            <span id="participationLabel" class="px-3 py-1 gold-border border bg-transparent gold-text rounded-full text-sm font-bold">計算中</span>
                             <span class="text-[10px] opacity-40 mt-1 italic">基於打卡與互動頻次</span>
                         </div>
                     </div>
@@ -70,27 +83,27 @@
 
             <div class="bg-dark-green/80 p-6 rounded-xl border border-white/10">
                 <h3 class="text-sm font-bold gold-text mb-4 uppercase tracking-widest">治理守護勳章</h3>
-                <div class="flex gap-6 text-3xl">
-                    <span title="民主參與" class="drop-shadow-md">🗳️</span>
-                    <span title="守護者" class="drop-shadow-md">🛡️</span>
-                    <span title="知識探索" class="opacity-20 grayscale">📖</span>
-                    <span title="在地深耕" class="opacity-20 grayscale">📍</span>
+                <div id="badges-row" class="flex gap-6 text-3xl">
+                    <span class="opacity-20">🗳️</span>
+                    <span class="opacity-20">🛡️</span>
+                    <span class="opacity-20">📖</span>
+                    <span class="opacity-20">📍</span>
                 </div>
-                <p class="text-[11px] mt-4 opacity-50 text-blue-300">參與 3 次決策投票 | 提交 1 筆守護檢舉</p>
+                <p id="badges-desc" class="text-[11px] mt-4 opacity-50 text-blue-300">載入中...</p>
             </div>
         </div>
 
+        <!-- 右欄：雷達圖 + 統計 -->
         <div class="lg:col-span-8 space-y-6">
             <div class="bg-dark-green rounded-xl p-6 border border-white/10 shadow-inner">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                     <h3 class="text-xl font-bold gold-text">學習查詢分析</h3>
                     <div class="flex bg-black/30 p-1 rounded-lg border border-white/10">
-                        <button onclick="updateStats('day')" id="btn-day" class="px-4 py-1 rounded-md text-sm transition-all tab-active">今日</button>
-                        <button onclick="updateStats('week')" id="btn-week" class="px-4 py-1 rounded-md text-sm transition-all">本周</button>
+                        <button onclick="updateStats('day')"   id="btn-day"   class="px-4 py-1 rounded-md text-sm transition-all tab-active">今日</button>
+                        <button onclick="updateStats('week')"  id="btn-week"  class="px-4 py-1 rounded-md text-sm transition-all">本周</button>
                         <button onclick="updateStats('month')" id="btn-month" class="px-4 py-1 rounded-md text-sm transition-all">本月</button>
                     </div>
                 </div>
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="h-[300px]">
                         <canvas id="radarChart"></canvas>
@@ -107,67 +120,91 @@
                         </table>
                         <div class="mt-6 p-4 bg-yellow-900/10 border-l-4 border-[#D4AF37] rounded-r">
                             <p class="text-[10px] gold-text font-bold mb-1 tracking-widest">💡 續命建議</p>
-                            <p id="ai-suggestion" class="text-xs leading-relaxed opacity-80"></p>
+                            <p id="ai-suggestion" class="text-xs leading-relaxed opacity-80">載入中...</p>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- 底部：熱度圖 -->
         <div class="lg:col-span-12 bg-dark-green rounded-xl p-6 border border-white/10">
             <h3 class="text-xl font-bold mb-6 gold-text">文化續命熱度圖</h3>
             <div class="flex gap-1 overflow-x-auto pb-4 justify-center" id="heatmap"></div>
             <div class="flex justify-between items-center text-[10px] opacity-40 px-2 mt-2">
-                <span>2025-03-01 啟動系統</span>
+                <span id="heatmap-start">載入中...</span>
                 <span>連續打卡能有效提升「語言參與度」</span>
             </div>
         </div>
     </div>
 
     <script>
-        let radarChart;
-        const labels = ['在地打卡', '語音朗讀', '廣播收聽', '繪本閱讀', '治理投票'];
-        
-        const mockData = {
-            day: {
-                chart: [25, 30, 60, 20, 10],
-                table: ["1 次打卡", "1 分鐘錄音", "45 秒收聽", "1 頁進度", "今日無投票"],
-                advise: "今日廣播收聽進度良好，若能增加一分鐘的「語音朗讀」，能更有效平衡參與度維度。"
-            },
-            week: {
-                chart: [65, 50, 85, 45, 70],
-                table: ["8 次打卡", "15 分鐘錄音", "12 分鐘累計", "6 頁進度", "2 次治理投票"],
-                advise: "這禮拜在「治理投票」表現優異！建議週末可安排前往尚未造訪的「友善環境」據點打卡。"
-            },
-            month: {
-                chart: [90, 75, 95, 65, 85],
-                table: ["32 次打卡", "1.5 小時累計", "45 分鐘累計", "28 頁累計", "4 次決策投票"],
-                advise: "您是本月的文化護航者！目前參與度非常全面，下個月可嘗試挑戰「繪本閱讀」全本完讀。"
-            }
-        };
+    // ============================================================
+    // 設定
+    // ============================================================
+    const GAS_URL     = 'https://script.google.com/macros/s/AKfycbwDv3vDAqSDd0KiJvqg78GsFGVOySMAgP1UFNfyH_I4a7JxMGS0AD1jVPl3ymFQWrM1lA/exec';
+    const DEFAULT_FID = 'F177124937338';  // 預設家庭 ID（無 URL 參數時使用）
 
-        function updateStats(period) {
-            ['day', 'week', 'month'].forEach(p => document.getElementById(`btn-${p}`).classList.remove('tab-active'));
-            document.getElementById(`btn-${period}`).classList.add('tab-active');
-            radarChart.data.datasets[0].data = mockData[period].chart;
-            radarChart.update();
-            const tableBody = document.getElementById('stat-table-body');
-            tableBody.innerHTML = labels.map((label, index) => `
-                <tr class="border-b border-white/5">
-                    <td class="py-2.5 opacity-70">${label}</td>
-                    <td class="py-2.5 text-right font-mono gold-text">${mockData[period].table[index]}</td>
-                </tr>
-            `).join('');
-            document.getElementById('ai-suggestion').innerText = mockData[period].advise;
-        }
+    const RADAR_LABELS = ['在地打卡', '語音朗讀', '廣播收聽', '繪本閱讀', '治理投票'];
 
+    // ============================================================
+    // 離線備用資料
+    // ============================================================
+    const FALLBACK = {
+        success: true,
+        generatedAt: '離線示範',
+        family: {
+            familyId:           'F177124937338',
+            familyName:         '陳仕賓 家庭',
+            socialName:         '台語文創意園區',
+            region:             '彰化',
+            regDate:            '2026-02-16',
+            streakDays:         4,
+            totalDays:          20,
+            totalScore:         1250,
+            participationLabel: '積極參與',
+            totalCheckins:      62,
+            totalVotes:         3,
+            totalReadingPages:  28,
+            totalRadioMin:      22,
+        },
+        badges: [
+            { emoji: '🗳️', title: '民主參與', earned: true },
+            { emoji: '🛡️', title: '守護者',   earned: true },
+            { emoji: '📖', title: '知識探索', earned: false },
+            { emoji: '📍', title: '在地深耕', earned: false },
+        ],
+        radar: {
+            day:   [25, 30, 60, 20, 10],
+            week:  [65, 50, 85, 45, 70],
+            month: [90, 75, 95, 65, 85],
+        },
+        stats: {
+            day:   ['1 次打卡', '1 次錄音', '45 秒收聽', '1 頁進度', '今日無投票'],
+            week:  ['8 次打卡', '15 次錄音', '12 分鐘累計', '6 頁進度', '2 次治理投票'],
+            month: ['32 次打卡', '1.5 小時累計', '45 分鐘累計', '28 頁累計', '4 次決策投票'],
+        },
+        heatmap: [],
+    };
+
+    // ============================================================
+    // 狀態
+    // ============================================================
+    let globalData   = null;
+    let radarChart   = null;
+    let currentPeriod = 'day';
+
+    // ============================================================
+    // 雷達圖初始化
+    // ============================================================
+    function initRadar() {
         const ctx = document.getElementById('radarChart').getContext('2d');
         radarChart = new Chart(ctx, {
             type: 'radar',
             data: {
-                labels: labels,
+                labels: RADAR_LABELS,
                 datasets: [{
-                    data: mockData.day.chart,
+                    data: [0, 0, 0, 0, 0],
                     backgroundColor: 'rgba(212, 175, 55, 0.2)',
                     borderColor: '#D4AF37',
                     borderWidth: 2,
@@ -178,29 +215,166 @@
                 scales: {
                     r: {
                         angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
-                        pointLabels: { color: '#F5F5DC', font: { size: 12 } },
-                        ticks: { display: false, max: 100, min: 0 }
+                        grid:       { color: 'rgba(255, 255, 255, 0.1)' },
+                        pointLabels:{ color: '#F5F5DC', font: { size: 12 } },
+                        ticks:      { display: false, max: 100, min: 0 }
                     }
                 },
                 plugins: { legend: { display: false } },
                 maintainAspectRatio: false
             }
         });
+    }
 
+    // ============================================================
+    // 切換期間
+    // ============================================================
+    function updateStats(period) {
+        currentPeriod = period;
+        ['day', 'week', 'month'].forEach(p =>
+            document.getElementById(`btn-${p}`).classList.remove('tab-active')
+        );
+        document.getElementById(`btn-${period}`).classList.add('tab-active');
+
+        if (!globalData) return;
+
+        const radar  = globalData.radar[period];
+        const stats  = globalData.stats[period];
+
+        radarChart.data.datasets[0].data = radar;
+        radarChart.update();
+
+        const tableBody = document.getElementById('stat-table-body');
+        tableBody.innerHTML = RADAR_LABELS.map((label, i) => `
+            <tr class="border-b border-white/5">
+                <td class="py-2.5 opacity-70">${label}</td>
+                <td class="py-2.5 text-right font-mono gold-text">${stats[i]}</td>
+            </tr>
+        `).join('');
+
+        // 續命建議：找最低維度
+        const minIdx = radar.indexOf(Math.min(...radar));
+        const adviceMap = [
+            '在地打卡次數偏低，建議本周前往友善節點現場打卡。',
+            '語音朗讀次數偏低，建議每日錄一段短短的台語語音。',
+            '廣播收聽較少，可以開啟寶島新聲 FM98.5 邊做事邊聽。',
+            '繪本閱讀進度偏慢，建議每天讀 1-2 頁台語繪本。',
+            '治理投票偏少，下次看到節點投票通知記得參與。',
+        ];
+        document.getElementById('ai-suggestion').textContent = adviceMap[minIdx];
+    }
+
+    // ============================================================
+    // 渲染主資料
+    // ============================================================
+    function removeSkeleton(el) {
+        if (el) el.classList.remove('skeleton', 'h-8', 'w-40', 'mx-auto');
+    }
+
+    function renderData(data) {
+        globalData = data;
+        const f = data.family;
+
+        // 家庭基本資訊
+        const nameEl = document.getElementById('familyName');
+        removeSkeleton(nameEl);
+        nameEl.textContent = f.familyName;
+
+        document.getElementById('familyId').textContent     = 'ID: ' + f.familyId;
+        document.getElementById('familySocial').textContent = f.socialName + '・' + f.region;
+        document.getElementById('streakDays').textContent   = '🔥 ' + f.streakDays + ' 天';
+        document.getElementById('totalScore').textContent   = '🏆 ' + f.totalScore.toLocaleString();
+        document.getElementById('totalCheckins').textContent = '📍 ' + f.totalCheckins + ' 次';
+        document.getElementById('participationLabel').textContent = f.participationLabel;
+
+        // 勳章
+        const badgesRow  = document.getElementById('badges-row');
+        const badgesDesc = document.getElementById('badges-desc');
+        badgesRow.innerHTML = data.badges.map(b =>
+            `<span title="${b.title}" class="${b.earned ? 'drop-shadow-md' : 'opacity-20 grayscale'}">${b.emoji}</span>`
+        ).join('');
+        const earned = data.badges.filter(b => b.earned).map(b => b.title);
+        badgesDesc.textContent = earned.length > 0
+            ? '已獲得：' + earned.join('、')
+            : '尚未獲得任何勳章，繼續加油！';
+
+        // 雷達圖 + 統計
+        updateStats('day');
+
+        // 熱度圖
+        renderHeatmap(data.heatmap, f.regDate);
+    }
+
+    // ============================================================
+    // 熱度圖
+    // ============================================================
+    function renderHeatmap(activeDates, regDate) {
         const heatmap = document.getElementById('heatmap');
-        for (let i = 0; i < 52; i++) {
+        heatmap.innerHTML = '';
+
+        const activeSet = new Set(activeDates);
+        const today     = new Date();
+        // 往前推 52 周（364 天）
+        const start = new Date(today);
+        start.setDate(start.getDate() - 363);
+        // 對齊到星期日
+        start.setDate(start.getDate() - start.getDay());
+
+        for (let w = 0; w < 52; w++) {
             const week = document.createElement('div');
             week.className = 'flex flex-col gap-1';
-            for (let j = 0; j < 7; j++) {
-                const day = document.createElement('div');
-                const opacity = Math.random() > 0.7 ? 'bg-[#D4AF37]' : 'bg-[#1A361A]';
-                day.className = `w-3 h-3 ${opacity} rounded-sm opacity-60 border border-white/5`;
+            for (let d = 0; d < 7; d++) {
+                const date = new Date(start);
+                date.setDate(start.getDate() + w * 7 + d);
+                const dateStr = date.toISOString().slice(0, 10);
+                const active  = activeSet.has(dateStr);
+                const day     = document.createElement('div');
+                day.className = `w-3 h-3 ${active ? 'bg-[#D4AF37]' : 'bg-[#1A361A]'} rounded-sm opacity-${active ? '90' : '60'} border border-white/5`;
+                day.title     = dateStr;
                 week.appendChild(day);
             }
             heatmap.appendChild(week);
         }
-        updateStats('day');
+
+        document.getElementById('heatmap-start').textContent =
+            (regDate || '系統啟動') + ' 起';
+    }
+
+    // ============================================================
+    // 主程式
+    // ============================================================
+    async function loadData() {
+        // 從 URL 取得 fid
+        const params = new URLSearchParams(window.location.search);
+        const fid    = params.get('fid') || DEFAULT_FID;
+
+        initRadar();
+
+        if (!GAS_URL || GAS_URL.includes('YOUR_GAS')) {
+            document.body.classList.add('offline-mode');
+            renderData(FALLBACK);
+            return;
+        }
+
+        try {
+            const res  = await fetch(
+                `${GAS_URL}?action=getFamilyDetail&fid=${encodeURIComponent(fid)}`,
+                { redirect: 'follow' }
+            );
+            const data = await res.json();
+            if (data.success) {
+                renderData(data);
+            } else {
+                throw new Error(data.error || '資料錯誤');
+            }
+        } catch (err) {
+            console.warn('API 失敗，啟用離線模式:', err);
+            document.body.classList.add('offline-mode');
+            renderData(FALLBACK);
+        }
+    }
+
+    loadData();
     </script>
 </body>
 </html>
