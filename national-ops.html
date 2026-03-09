@@ -71,6 +71,27 @@
         /* ── 地圖容器 ── */
         .leaflet-container { background: #0a1a0a !important; border-radius: 12px; }
         .leaflet-tile-container { filter: brightness(0.45) saturate(0.3) hue-rotate(80deg); }
+        /* 縮放控制移右側 */
+        .leaflet-top.leaflet-left { left: auto; right: 10px; }
+        /* 手機響應式 */
+        @media (max-width: 768px) {
+            #main-grid {
+                grid-template-columns: 1fr !important;
+            }
+            #map-container {
+                grid-column: 1 !important;
+                grid-row: 1 !important;
+                min-height: 300px !important;
+            }
+            #map { min-height: 300px !important; height: 300px !important; }
+            #social-col { grid-column: 1 !important; grid-row: 2 !important; }
+            #family-col  { grid-column: 1 !important; grid-row: 3 !important; }
+            #bottom-grid {
+                grid-column: 1 !important;
+                grid-row: 4 !important;
+                grid-template-columns: 1fr !important;
+            }
+        }
         .leaflet-popup-content-wrapper {
             background: var(--dark);
             color: #e8e8d8;
@@ -237,10 +258,10 @@
     </header>
 
     <!-- ══ MAIN ══════════════════════════════════════════ -->
-    <main style="max-width: 1400px; margin: 0 auto; padding: 16px 20px; display: grid; grid-template-columns: 1fr 320px; grid-template-rows: auto auto auto; gap: 16px;">
+    <main id="main-grid" style="max-width: 1400px; margin: 0 auto; padding: 16px 20px; display: grid; grid-template-columns: 1fr 320px; grid-template-rows: auto auto auto; gap: 16px;">
 
         <!-- 地圖 -->
-        <div style="grid-column: 1; grid-row: 1 / 3; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; overflow: hidden; min-height: 480px; position: relative;">
+        <div id="map-container" style="grid-column: 1; grid-row: 1 / 3; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; overflow: hidden; min-height: 480px; position: relative;">
             <div style="position: absolute; top: 12px; left: 12px; z-index: 1000; background: rgba(15,34,16,0.9); border: 1px solid var(--gold-dim); padding: 8px 12px; border-radius: 6px; font-size: 0.65rem; pointer-events: none;">
                 <div style="color: var(--gold); font-weight: bold; margin-bottom: 4px; letter-spacing: 0.1em;">台語友善節點地圖</div>
                 <div style="display: flex; gap: 10px; opacity: 0.7;">
@@ -253,7 +274,7 @@
         </div>
 
         <!-- 右欄：社團排行 -->
-        <div style="grid-column: 2; grid-row: 1; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
+        <div id="social-col" style="grid-column: 2; grid-row: 1; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
             <div class="section-title">🏛️ 社團積分榜</div>
             <div id="social-ranking">
                 <div style="text-align: center; padding: 20px; opacity: 0.4;"><span class="loading-spinner"></span></div>
@@ -261,7 +282,7 @@
         </div>
 
         <!-- 右欄：家庭排行 -->
-        <div style="grid-column: 2; grid-row: 2; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
+        <div id="family-col" style="grid-column: 2; grid-row: 2; background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
             <div class="section-title">🏆 家庭積分榜</div>
             <div id="family-ranking">
                 <div style="text-align: center; padding: 20px; opacity: 0.4;"><span class="loading-spinner"></span></div>
@@ -269,7 +290,7 @@
         </div>
 
         <!-- 底部：活動分佈 + 熱門地點 -->
-        <div style="grid-column: 1 / 3; grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+        <div id="bottom-grid" style="grid-column: 1 / 3; grid-row: 3; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
 
             <div style="background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
                 <div class="section-title">📊 學習活動分佈</div>
@@ -306,7 +327,7 @@
     <script>
     // ══ 設定 ════════════════════════════════════════════════
     // ⚠️ 替換為你的 GAS Web App URL
-    const GAS_URL = 'https://script.google.com/macros/s/YOUR_DEPLOYMENT_ID/exec';
+    const GAS_URL = 'https://script.google.com/macros/s/AKfycbwDv3vDAqSDd0KiJvqg78GsFGVOySMAgP1UFNfyH_I4a7JxMGS0AD1jVPl3ymFQWrM1lA/exec';
 
     // 若無法連 GAS，使用此 fallback 資料（根據真實 xlsx 預設）
     const FALLBACK_DATA = {
