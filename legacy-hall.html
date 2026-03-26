@@ -429,7 +429,7 @@
     <div class="sec-title">五藝完成進度</div>
     <div class="card" style="margin-bottom:16px;">
       <div class="total-bar-wrap">
-        <div class="total-bar-label"><span>今日總完成度</span><span id="totalDoneLabel">— / 15 項</span></div>
+        <div class="total-bar-label"><span>今日總完成度</span><span id="totalDoneLabel"></span></div>
         <div class="bar-bg"><div class="bar-fill" id="totalBarFill" style="width:0%; background:linear-gradient(90deg,#2d8c50,var(--gold));"></div></div>
       </div>
 
@@ -535,7 +535,6 @@ const ARTS = [
   { key:'voice',   items:[
     {k:'tts',           label:'TTS語音查詢'},
     {k:'tailo',         label:'台羅拼音查詢'},
-    {k:'tone',          label:'聲調學習'},
     {k:'recording',     label:'錄音朗讀'},
     {k:'scoring',       label:'發音評分'}
   ]},
@@ -669,8 +668,8 @@ function renderPage(d) {
   document.getElementById('suggestText').textContent = buildSuggestion(d.artRatios, d.todayItems);
 
   // 五藝進度
-  const pct = Math.round((d.totalDone / 15) * 100);
-  document.getElementById('totalDoneLabel').textContent = d.totalDone + ' / 15 項';
+  const pct = Math.round((d.totalDone / 14) * 100);
+  document.getElementById('totalDoneLabel').textContent = d.totalDone + ' / 14 項';
   setTimeout(() => {
     document.getElementById('totalBarFill').style.width = pct + '%';
   }, 100);
