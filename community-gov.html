@@ -59,6 +59,15 @@
         .art-dot.full { background:#D4AF37; }
         .detail-btn { font-size:10px; padding:3px 8px; border-radius:4px; border:1px solid rgba(212,175,55,0.3); background:transparent; color:#D4AF37; cursor:pointer; }
         .detail-btn:hover { background:rgba(212,175,55,0.1); }
+        /* 成員熱度圖 */
+        .hm-row { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+        .hm-name { font-size:11px; color:rgba(245,245,220,0.6); width:46px; flex-shrink:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .hm-cells { display:flex; gap:2px; flex:1; }
+        .hm-cell { flex:1; aspect-ratio:1; border-radius:2px; background:rgba(255,255,255,0.07); min-width:0; }
+        .hm-cell.l1 { background:#2d5c30; }
+        .hm-cell.l2 { background:#4a8c4e; }
+        .hm-cell.l3 { background:#6ab870; }
+        .hm-cell.l4 { background:#c9a84c; }
     </style>
 </head>
 <body class="p-4 md:p-8">
@@ -230,6 +239,26 @@
                 </div>
 
                 <p class="text-[9px] opacity-30 mt-3 text-right" id="counsel-date"></p>
+            </div>
+        </div>
+
+        <!-- ══ 成員學習熱度圖 ══════════════════════════ -->
+        <div id="heatmap-section" style="display:none;">
+            <div class="section-divider">成員學習熱度</div>
+            <div class="bg-dark-green rounded-xl p-5 border gold-border/30 shadow-inner">
+                <div class="flex justify-between items-center mb-4">
+                    <span class="text-sm font-bold gold-text">近30天學習熱度</span>
+                    <span id="heatmap-social-name" class="text-[10px] opacity-50"></span>
+                </div>
+                <div id="heatmap-rows"></div>
+                <div class="flex items-center justify-end gap-1 mt-3">
+                    <span class="text-[9px] opacity-40 mr-1">活躍度</span>
+                    <div style="width:10px;height:10px;border-radius:2px;background:rgba(255,255,255,0.08);"></div>
+                    <div style="width:10px;height:10px;border-radius:2px;background:#2d5c30;"></div>
+                    <div style="width:10px;height:10px;border-radius:2px;background:#4a8c4e;"></div>
+                    <div style="width:10px;height:10px;border-radius:2px;background:#6ab870;"></div>
+                    <div style="width:10px;height:10px;border-radius:2px;background:#c9a84c;"></div>
+                </div>
             </div>
         </div>
 
@@ -565,6 +594,7 @@
             t.classList.toggle('active', t.dataset.social === name);
         });
         renderCounselTable();
+        renderHeatmapSection();
     }
 
     function buildCounselSocialTabs(socials) {
@@ -573,6 +603,48 @@
             `<span class="counsel-social-tab ${s === activeSocial ? 'active' : ''}"
                    data-social="${s}" onclick="selectCounselSocial('${s}')">${s}</span>`
         ).join('');
+    }
+
+    async function renderHeatmapSection() {
+        const section = document.getElementById('heatmap-section');
+        const rowsEl  = document.getElementById('heatmap-rows');
+        const nameEl  = document.getElementById('heatmap-social-name');
+
+        const members = counselData.filter(m => m.socialName === activeSocial);
+        if (!members.length) { section.style.display = 'none'; return; }
+
+        section.style.display = 'block';
+        nameEl.textContent = activeSocial;
+
+        // 每個成員取得近30天熱度資料
+        // 如果 API 有回傳 heatmap 就用，沒有就用 todayDone 示意
+        rowsEl.innerHTML = '';
+        for (const m of members) {
+            // 嘗試從個人資料 API 拿熱度圖，或用現有資料
+            const heatmap = m.heatmap || generateFallbackHeatmap(m);
+            const row = document.createElement('div');
+            row.className = 'hm-row';
+            const cells = heatmap.map(l =>
+                `<div class="hm-cell${l > 0 ? ' l' + Math.min(l, 4) : ''}"></div>`
+            ).join('');
+            row.innerHTML = `
+                <div class="hm-name" title="${m.familyName}">${m.familyName}</div>
+                <div class="hm-cells">${cells}</div>`;
+            rowsEl.appendChild(row);
+        }
+    }
+
+    function generateFallbackHeatmap(member) {
+        // 從 streakDays 和 todayDone 生成示意熱度
+        const arr = Array(30).fill(0);
+        const streak = member.streakDays || 0;
+        const done   = member.todayDone  || 0;
+        // 最近 streak 天填入活躍度
+        for (let i = 0; i < Math.min(streak, 30); i++) {
+            const idx = 29 - i;
+            arr[idx] = done > 10 ? 4 : done > 6 ? 3 : done > 3 ? 2 : 1;
+        }
+        return arr;
     }
 
     async function loadCounselData(fid) {
@@ -601,6 +673,7 @@
             activeSocial   = counselSocials[0] || '';
             buildCounselSocialTabs(counselSocials);
             renderCounselTable();
+            renderHeatmapSection();
 
         } catch(e) {
             console.warn('輔導員資料載入失敗，嘗試示範模式:', e);
@@ -620,6 +693,7 @@
             activeSocial   = '彰化教會';
             buildCounselSocialTabs(counselSocials);
             renderCounselTable();
+            renderHeatmapSection();
         }
     }
 
