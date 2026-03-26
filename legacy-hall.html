@@ -1,380 +1,756 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>咱兜的台語 - 個人/家庭榮譽牆</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Noto Serif TC', serif; background-color: #2F4F2F; color: #F5F5DC; }
-        .gold-text { color: #D4AF37; }
-        .gold-border { border-color: #D4AF37; }
-        .bg-dark-green { background-color: #1A361A; }
-        .tab-active { background-color: #D4AF37; color: #1A361A; font-weight: bold; }
-        .btn-nav { transition: all 0.3s ease; background: rgba(212, 175, 55, 0.05); }
-        .btn-nav:hover { background: rgba(212, 175, 55, 0.15); transform: translateY(-2px); }
-        /* 載入 skeleton */
-        .skeleton { background: linear-gradient(90deg, #1a361a 25%, #243d24 50%, #1a361a 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; border-radius: 4px; }
-        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
-        /* 離線標記 */
-        .offline-badge { display: none; }
-        .offline-mode .offline-badge { display: inline-flex; }
-        .offline-mode .live-badge { display: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>咱兜的台語 · 個人學習軌跡</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700;900&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #1a2e1a;
+    --card:     #1e3320;
+    --card2:    #162816;
+    --gold:     #c9a84c;
+    --gold2:    #e8c96a;
+    --gold-dim: #8a6e2e;
+    --text:     #e8dfc8;
+    --text-dim: #9aab8a;
+    --green:    #4caf6a;
+    --border:   rgba(201,168,76,0.2);
+    --border2:  rgba(255,255,255,0.07);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    min-height: 100vh;
+    padding: 0 0 48px;
+    max-width: 430px;
+    margin: 0 auto;
+  }
+
+  /* ── Top banner ── */
+  .top-banner {
+    background: linear-gradient(180deg, #162e16 0%, var(--bg) 100%);
+    text-align: center;
+    padding: 16px 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .back-btn {
+    position: absolute;
+    left: 16px;
+    top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    border: 1px solid var(--gold);
+    border-radius: 20px;
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-decoration: none;
+    background: rgba(201,168,76,0.08);
+    transition: background .2s;
+  }
+  .back-btn:hover { background: rgba(201,168,76,0.18); }
+  .top-banner-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--gold);
+    letter-spacing: 5px;
+    margin-bottom: 4px;
+    margin-top: 8px;
+  }
+  .top-banner-sub {
+    font-size: 12px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+    line-height: 1.8;
+  }
+
+  /* ── Loading ── */
+  .loading-wrap {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  .loading-dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--gold);
+    margin: 0 3px;
+    animation: bounce .8s infinite alternate;
+  }
+  .loading-dot:nth-child(2) { animation-delay: .2s; }
+  .loading-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes bounce { from { transform:translateY(0); } to { transform:translateY(-8px); } }
+
+  /* ── Section header ── */
+  .sec { padding: 0 16px; margin-bottom: 20px; }
+  .sec-title {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gold);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* ── Profile card ── */
+  .profile-card {
+    margin: 0 16px 20px;
+    background: var(--card);
+    border: 1px solid var(--gold);
+    border-radius: 18px;
+    padding: 24px 20px 20px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-card::before {
+    content:'';
+    position:absolute;
+    top:-40px; left:50%;
+    transform:translateX(-50%);
+    width:160px; height:160px;
+    background: radial-gradient(circle, rgba(201,168,76,0.12) 0%, transparent 70%);
+    pointer-events:none;
+  }
+  .profile-avatar { font-size: 44px; margin-bottom: 8px; }
+  .profile-name {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gold2);
+    margin-bottom: 4px;
+  }
+  .profile-org { font-size: 12px; color: var(--text-dim); margin-bottom: 18px; }
+
+  .encourage-box {
+    background: rgba(201,168,76,0.08);
+    border: 1px solid rgba(201,168,76,0.25);
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-bottom: 18px;
+    text-align: left;
+  }
+  .encourage-proverb {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 13px;
+    color: var(--gold2);
+    font-weight: 700;
+    margin-bottom: 3px;
+  }
+  .encourage-sub { font-size: 12px; color: var(--text-dim); line-height: 1.6; }
+
+  .profile-stats { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; }
+  .pstat {
+    background: var(--card2);
+    border-radius: 12px;
+    border: 1px solid var(--border2);
+    padding: 12px 10px;
+    text-align: center;
+  }
+  .pstat-icon { font-size:18px; margin-bottom:4px; }
+  .pstat-val {
+    font-family: 'Noto Serif TC', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gold2);
+    margin-bottom: 2px;
+  }
+  .pstat-label { font-size: 11px; color: var(--text-dim); }
+
+  .badge-row { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .badge {
+    display:flex; align-items:center; gap:5px;
+    padding:5px 12px; border-radius:20px;
+    font-size:12px; font-weight:600;
+  }
+  .badge.earned { background:rgba(76,175,106,0.15); color:var(--green); border:1px solid rgba(76,175,106,0.3); }
+  .badge.locked { background:rgba(255,255,255,0.04); color:var(--text-dim); border:1px solid var(--border2); }
+
+  .parti-tag {
+    display:inline-block; padding:4px 14px;
+    border-radius:20px; border:1px solid var(--gold);
+    color:var(--gold); font-size:12px; font-weight:700; margin-top:12px;
+  }
+  .parti-note { font-size:11px; color:var(--text-dim); margin-top:4px; }
+
+  /* ── Tab ── */
+  .tab-bar {
+    display:flex; background:var(--card2);
+    border-radius:10px; padding:4px;
+    border:1px solid var(--border);
+  }
+  .tab {
+    flex:1; text-align:center; padding:8px 0;
+    font-size:14px; color:var(--text-dim);
+    border-radius:7px; cursor:pointer; transition:all .2s;
+  }
+  .tab.active { background:var(--gold); color:#1a2e1a; font-weight:700; }
+
+  /* ── Radar ── */
+  .card { background:var(--card); border-radius:16px; border:1px solid var(--border); padding:20px 16px; }
+  .radar-wrap { width:100%; aspect-ratio:1; max-width:320px; margin:0 auto 16px; }
+  svg.radar { width:100%; height:100%; overflow:visible; }
+  .ax-lbl  { font-size:11px; fill:var(--text-dim); font-family:'Noto Sans TC',sans-serif; }
+  .ax-bold { font-size:12px; fill:#e8c96a; font-family:'Noto Serif TC',serif; font-weight:700; }
+
+  .stats-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .stat-row {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:10px 12px; background:var(--card2); border-radius:10px; border:1px solid var(--border);
+  }
+  .stat-row.full { grid-column:1/-1; }
+  .stat-label { font-size:12px; color:var(--text-dim); }
+  .stat-val { font-size:13px; font-weight:600; color:var(--gold2); }
+  .stat-val.zero { color:var(--text-dim); font-weight:400; }
+
+  /* ── Arts ── */
+  .total-bar-wrap {
+    background:var(--card2); border-radius:10px;
+    border:1px solid var(--border); padding:12px 14px; margin-bottom:16px;
+  }
+  .total-bar-label {
+    display:flex; justify-content:space-between;
+    font-size:12px; color:var(--text-dim); margin-bottom:8px;
+  }
+  .total-bar-label span:last-child { color:var(--gold2); font-weight:700; }
+  .bar-bg { height:8px; background:#0e1e0e; border-radius:4px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; transition:width 1.4s cubic-bezier(.4,0,.2,1); }
+
+  .art-item { margin-bottom:16px; }
+  .art-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .art-name { font-family:'Noto Serif TC',serif; font-size:14px; font-weight:700; color:var(--gold); }
+  .art-badge { font-size:11px; padding:2px 9px; border-radius:20px; font-weight:600; }
+  .art-badge.done    { background:rgba(76,175,106,0.2); color:var(--green); }
+  .art-badge.partial { background:rgba(201,168,76,0.15); color:var(--gold); }
+  .art-badge.none    { background:rgba(255,255,255,0.05); color:var(--text-dim); }
+
+  .art-bar-bg { height:6px; background:#0e1e0e; border-radius:3px; overflow:hidden; margin-bottom:8px; }
+  .art-bar-fill { height:100%; border-radius:3px; transition:width 1.2s cubic-bezier(.4,0,.2,1); }
+
+  .sub-list { display:flex; flex-wrap:wrap; gap:6px; }
+  .sub-item {
+    font-size:11px; padding:3px 10px;
+    border-radius:20px; border:1px solid;
+    display:flex; align-items:center; gap:4px;
+  }
+  .sub-item.done { border-color:rgba(76,175,106,0.4); color:var(--green); background:rgba(76,175,106,0.08); }
+  .sub-item.none { border-color:rgba(255,255,255,0.1); color:var(--text-dim); }
+  .sub-dot { width:5px; height:5px; border-radius:50%; }
+  .sub-item.done .sub-dot { background:var(--green); }
+  .sub-item.none .sub-dot { background:var(--text-dim); opacity:.5; }
+  .divider { height:1px; background:var(--border); margin:16px 0; }
+
+  /* ── Heatmap ── */
+  .heatmap-grid { display:grid; grid-template-columns:repeat(15,1fr); gap:3px; margin-bottom:10px; }
+  .hc { aspect-ratio:1; border-radius:2px; background:var(--card2); }
+  .hc.l1 { background:#2d5c30; }
+  .hc.l2 { background:#4a8c4e; }
+  .hc.l3 { background:#6ab870; }
+  .hc.l4 { background:var(--gold); }
+  .heat-meta { display:flex; justify-content:space-between; font-size:11px; color:var(--text-dim); align-items:center; }
+  .heat-legend { display:flex; align-items:center; gap:3px; }
+  .lc { width:10px; height:10px; border-radius:2px; }
+
+  .suggest {
+    background:rgba(201,168,76,0.07);
+    border-left:3px solid var(--gold);
+    border-radius:0 10px 10px 0;
+    padding:12px 14px; margin-top:16px;
+    font-size:13px; color:var(--text-dim); line-height:1.7;
+  }
+  .suggest-title { font-size:12px; font-weight:700; color:var(--gold); margin-bottom:4px; }
+
+  .gov-placeholder {
+    background:var(--card); border-radius:16px;
+    border:1px dashed var(--border); padding:24px 20px; text-align:center;
+  }
+  .gov-badge {
+    display:inline-block; padding:3px 12px; border-radius:20px;
+    background:rgba(201,168,76,0.08); border:1px solid var(--border);
+    font-size:11px; color:var(--gold-dim); margin-top:6px;
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(10px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .profile-card { animation:fadeUp .4s ease both; }
+  .card { animation:fadeUp .4s .1s ease both; }
+</style>
 </head>
-<body class="p-4 md:p-8">
+<body>
 
-    <header class="relative text-center mb-10 border-b gold-border pb-6">
-        <div class="md:absolute md:left-0 md:top-0 mb-4 md:mb-0">
-            <a href="index.html" class="btn-nav inline-flex items-center gap-2 px-4 py-2 border gold-border rounded-lg text-xs gold-text font-bold tracking-widest">
-                <span>🏠</span> 返回官宣首頁
-            </a>
-        </div>
-        <h1 class="text-4xl md:text-5xl font-bold mb-2 tracking-[0.2em] gold-text">咱兜的台語</h1>
-        <div class="flex flex-col gap-1 text-sm md:text-lg opacity-90 italic mb-3">
-            <p>為台語文化續命</p>
-            <p>為台灣開創文明</p>
-        </div>
-        <div class="flex justify-center gap-2 flex-wrap">
-            <span class="live-badge inline-flex items-center gap-1 text-[10px] bg-green-900/60 text-green-400 px-2 py-1 rounded-full border border-green-500/30">
-                <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span> 即時資料
-            </span>
-            <span class="offline-badge items-center gap-1 text-[10px] bg-yellow-900/60 text-yellow-400 px-2 py-1 rounded-full border border-yellow-500/30">
-                ⚡ 離線示範模式
-            </span>
-        </div>
-    </header>
+<!-- Top Banner -->
+<div class="top-banner">
+  <a class="back-btn" href="index.html">🏠 返回官宣首頁</a>
+  <div class="top-banner-title">咱兜的台語</div>
+  <div class="top-banner-sub">為台語文化續命<br>為台灣開創文明</div>
+</div>
 
-    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Loading -->
+<div class="loading-wrap" id="loadingWrap">
+  <div style="margin-bottom:16px;">
+    <span class="loading-dot"></span>
+    <span class="loading-dot"></span>
+    <span class="loading-dot"></span>
+  </div>
+  載入個人資料中…
+</div>
 
-        <!-- 左欄：家庭資訊 + 勳章 -->
-        <div class="lg:col-span-4 space-y-6">
-            <div class="bg-dark-green border-2 gold-border rounded-xl p-6 shadow-2xl">
-                <div class="text-center">
-                    <div class="text-6xl mb-4">🧧</div>
-                    <h2 id="familyName" class="text-3xl font-bold gold-text mb-1 skeleton h-8 w-40 mx-auto">　</h2>
-                    <p id="familyId" class="text-xs opacity-60 mt-2">載入中...</p>
-                    <p id="familySocial" class="text-xs opacity-50 mt-1"></p>
-                </div>
-                <div class="mt-8 space-y-4">
-                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                        <span>連續續命天數</span>
-                        <span id="streakDays" class="text-2xl font-mono text-orange-400">－</span>
-                    </div>
-                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                        <span>文化總積分</span>
-                        <span id="totalScore" class="text-2xl font-mono text-yellow-400">－</span>
-                    </div>
-                    <div class="flex justify-between items-center border-b border-white/10 pb-2">
-                        <span>累積打卡次數</span>
-                        <span id="totalCheckins" class="text-xl font-mono text-green-400">－</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span>語言參與度</span>
-                        <div class="flex flex-col items-end">
-                            <span id="participationLabel" class="px-3 py-1 gold-border border bg-transparent gold-text rounded-full text-sm font-bold">計算中</span>
-                            <span class="text-[10px] opacity-40 mt-1 italic">基於打卡與互動頻次</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+<!-- Main content（載入後顯示）-->
+<div id="mainContent" style="display:none;">
 
-            <div class="bg-dark-green/80 p-6 rounded-xl border border-white/10">
-                <h3 class="text-sm font-bold gold-text mb-4 uppercase tracking-widest">治理守護勳章</h3>
-                <div id="badges-row" class="flex gap-6 text-3xl">
-                    <span class="opacity-20">🗳️</span>
-                    <span class="opacity-20">🛡️</span>
-                    <span class="opacity-20">📖</span>
-                    <span class="opacity-20">📍</span>
-                </div>
-                <p id="badges-desc" class="text-[11px] mt-4 opacity-50 text-blue-300">載入中...</p>
-            </div>
-        </div>
+  <!-- ═══ 個人資料卡 ═══ -->
+  <div class="profile-card">
+    <div class="profile-avatar">🧧</div>
+    <div class="profile-name" id="profileName">—</div>
+    <div class="profile-org" id="profileOrg">—</div>
 
-        <!-- 右欄：雷達圖 + 統計 -->
-        <div class="lg:col-span-8 space-y-6">
-            <div class="bg-dark-green rounded-xl p-6 border border-white/10 shadow-inner">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
-                    <h3 class="text-xl font-bold gold-text">學習查詢分析</h3>
-                    <div class="flex bg-black/30 p-1 rounded-lg border border-white/10">
-                        <button onclick="updateStats('day')"   id="btn-day"   class="px-4 py-1 rounded-md text-sm transition-all tab-active">今日</button>
-                        <button onclick="updateStats('week')"  id="btn-week"  class="px-4 py-1 rounded-md text-sm transition-all">本周</button>
-                        <button onclick="updateStats('month')" id="btn-month" class="px-4 py-1 rounded-md text-sm transition-all">本月</button>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="h-[300px]">
-                        <canvas id="radarChart"></canvas>
-                    </div>
-                    <div class="flex flex-col justify-center">
-                        <table class="w-full text-sm text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-white/10 gold-text">
-                                    <th class="py-2">參與範疇</th>
-                                    <th class="py-2 text-right">數值統計</th>
-                                </tr>
-                            </thead>
-                            <tbody id="stat-table-body" class="opacity-90"></tbody>
-                        </table>
-                        <div class="mt-6 p-4 bg-yellow-900/10 border-l-4 border-[#D4AF37] rounded-r">
-                            <p class="text-[10px] gold-text font-bold mb-1 tracking-widest">💡 續命建議</p>
-                            <p id="ai-suggestion" class="text-xs leading-relaxed opacity-80">載入中...</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 底部：熱度圖 -->
-        <div class="lg:col-span-12 bg-dark-green rounded-xl p-6 border border-white/10">
-            <h3 class="text-xl font-bold mb-6 gold-text">文化續命熱度圖</h3>
-            <div class="flex gap-1 overflow-x-auto pb-4 justify-center" id="heatmap"></div>
-            <div class="flex justify-between items-center text-[10px] opacity-40 px-2 mt-2">
-                <span id="heatmap-start">載入中...</span>
-                <span>連續打卡能有效提升「語言參與度」</span>
-            </div>
-        </div>
+    <div class="encourage-box">
+      <div class="encourage-proverb" id="proverb">—</div>
+      <div class="encourage-sub" id="proverbSub">—</div>
     </div>
 
-    <script>
-    // ============================================================
-    // 設定
-    // ============================================================
-    const GAS_URL     = 'https://script.google.com/macros/s/AKfycbwDv3vDAqSDd0KiJvqg78GsFGVOySMAgP1UFNfyH_I4a7JxMGS0AD1jVPl3ymFQWrM1lA/exec';
-    const DEFAULT_FID = 'F177124937338';  // 預設家庭 ID（無 URL 參數時使用）
+    <div class="profile-stats">
+      <div class="pstat">
+        <div class="pstat-icon">🔥</div>
+        <div class="pstat-val" id="streakDays">—</div>
+        <div class="pstat-label">連續續命天數</div>
+      </div>
+      <div class="pstat">
+        <div class="pstat-icon">🏆</div>
+        <div class="pstat-val" id="totalScore">—</div>
+        <div class="pstat-label">文化總積分</div>
+      </div>
+      <div class="pstat">
+        <div class="pstat-icon">📍</div>
+        <div class="pstat-val" id="totalCheckin">—</div>
+        <div class="pstat-label">累積打卡次數</div>
+      </div>
+      <div class="pstat">
+        <div class="pstat-icon">✅</div>
+        <div class="pstat-val" id="todayDone">—</div>
+        <div class="pstat-label">今日完成項目</div>
+      </div>
+    </div>
 
-    const RADAR_LABELS = ['在地打卡', '語音朗讀', '廣播收聽', '繪本閱讀', '治理投票'];
+    <div class="parti-tag" id="partiTag">積極參與</div>
+    <div class="parti-note">基於打卡與互動頻次</div>
 
-    // ============================================================
-    // 離線備用資料
-    // ============================================================
-    const FALLBACK = {
-        success: true,
-        generatedAt: '離線示範',
-        family: {
-            familyId:           'F177124937338',
-            familyName:         '陳仕賓 家庭',
-            socialName:         '台語文創意園區',
-            region:             '彰化',
-            regDate:            '2026-02-16',
-            streakDays:         4,
-            totalDays:          20,
-            totalScore:         1250,
-            participationLabel: '積極參與',
-            totalCheckins:      62,
-            totalVotes:         3,
-            totalReadingPages:  28,
-            totalRadioMin:      22,
-        },
-        badges: [
-            { emoji: '🗳️', title: '民主參與', earned: true },
-            { emoji: '🛡️', title: '守護者',   earned: true },
-            { emoji: '📖', title: '知識探索', earned: false },
-            { emoji: '📍', title: '在地深耕', earned: false },
-        ],
-        radar: {
-            day:   [25, 30, 60, 20, 10],
-            week:  [65, 50, 85, 45, 70],
-            month: [90, 75, 95, 65, 85],
-        },
-        stats: {
-            day:   ['1 次打卡', '1 次錄音', '45 秒收聽', '1 頁進度', '今日無投票'],
-            week:  ['8 次打卡', '15 次錄音', '12 分鐘累計', '6 頁進度', '2 次治理投票'],
-            month: ['32 次打卡', '1.5 小時累計', '45 分鐘累計', '28 頁累計', '4 次決策投票'],
-        },
-        heatmap: [],
-    };
+    <div style="margin-top:18px; text-align:left;">
+      <div style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:10px; letter-spacing:2px;">治理守護勳章</div>
+      <div class="badge-row" id="badgeRow"></div>
+    </div>
+  </div>
 
-    // ============================================================
-    // 狀態
-    // ============================================================
-    let globalData   = null;
-    let radarChart   = null;
-    let currentPeriod = 'day';
+  <!-- ═══ 台語五藝 ═══ -->
+  <div class="sec">
+    <div class="sec-title">台語五藝・今日學習查詢</div>
 
-    // ============================================================
-    // 雷達圖初始化
-    // ============================================================
-    function initRadar() {
-        const ctx = document.getElementById('radarChart').getContext('2d');
-        radarChart = new Chart(ctx, {
-            type: 'radar',
-            data: {
-                labels: RADAR_LABELS,
-                datasets: [{
-                    data: [0, 0, 0, 0, 0],
-                    backgroundColor: 'rgba(212, 175, 55, 0.2)',
-                    borderColor: '#D4AF37',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
-                        grid:       { color: 'rgba(255, 255, 255, 0.1)' },
-                        pointLabels:{ color: '#F5F5DC', font: { size: 12 } },
-                        ticks:      { display: false, max: 100, min: 0 }
-                    }
-                },
-                plugins: { legend: { display: false } },
-                maintainAspectRatio: false
-            }
-        });
-    }
+    <div class="tab-bar" style="margin-bottom:16px;">
+      <div class="tab active">今日</div>
+      <div class="tab">本周</div>
+      <div class="tab">本月</div>
+    </div>
 
-    // ============================================================
-    // 切換期間
-    // ============================================================
-    function updateStats(period) {
-        currentPeriod = period;
-        ['day', 'week', 'month'].forEach(p =>
-            document.getElementById(`btn-${p}`).classList.remove('tab-active')
-        );
-        document.getElementById(`btn-${period}`).classList.add('tab-active');
+    <!-- Radar -->
+    <div class="card" style="margin-bottom:16px;">
+      <div class="radar-wrap">
+        <svg class="radar" viewBox="0 0 300 300">
+          <defs>
+            <radialGradient id="rg" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#c9a84c" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#c9a84c" stop-opacity="0.05"/>
+            </radialGradient>
+          </defs>
+          <polygon points="150,134 165.6,143 165.6,157 150,166 134.4,157 134.4,143" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+          <polygon points="150,118 181.2,136 181.2,164 150,182 118.8,164 118.8,136" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          <polygon points="150,102 196.8,129 196.8,171 150,198 103.2,171 103.2,129" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+          <polygon points="150,86 212.4,122 212.4,178 150,214 87.6,178 87.6,122" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="1"/>
+          <polygon points="150,42 228,93 228,207 150,258 72,207 72,93" fill="none" stroke="rgba(201,168,76,0.18)" stroke-width="1"/>
+          <line x1="150" y1="150" x2="150" y2="42"  stroke="rgba(201,168,76,0.15)" stroke-width="1"/>
+          <line x1="150" y1="150" x2="228" y2="93"  stroke="rgba(201,168,76,0.15)" stroke-width="1"/>
+          <line x1="150" y1="150" x2="228" y2="207" stroke="rgba(201,168,76,0.15)" stroke-width="1"/>
+          <line x1="150" y1="150" x2="72"  y2="207" stroke="rgba(201,168,76,0.15)" stroke-width="1"/>
+          <line x1="150" y1="150" x2="72"  y2="93"  stroke="rgba(201,168,76,0.15)" stroke-width="1"/>
+          <!-- 動態資料多邊形 -->
+          <polygon id="radarPoly" points="150,150 150,150 150,150 150,150 150,150"
+            fill="url(#rg)" stroke="#c9a84c" stroke-width="2" stroke-linejoin="round"/>
+          <circle id="rc0" cx="150" cy="150" r="4" fill="#c9a84c"/>
+          <circle id="rc1" cx="150" cy="150" r="4" fill="#c9a84c"/>
+          <circle id="rc2" cx="150" cy="150" r="4" fill="#c9a84c"/>
+          <circle id="rc3" cx="150" cy="150" r="4" fill="#c9a84c"/>
+          <circle id="rc4" cx="150" cy="150" r="4" fill="#c9a84c"/>
+          <!-- labels -->
+          <text x="150" y="27"  text-anchor="middle" class="ax-bold">聲韻修煉</text>
+          <text x="150" y="39"  text-anchor="middle" class="ax-lbl" dy="8">語音學習</text>
+          <text x="242" y="87"  text-anchor="start"  class="ax-bold">文字涵養</text>
+          <text x="242" y="99"  text-anchor="start"  class="ax-lbl">文字閱讀</text>
+          <text x="242" y="205" text-anchor="start"  class="ax-bold">耳目浸潤</text>
+          <text x="242" y="217" text-anchor="start"  class="ax-lbl">視聽媒體</text>
+          <text x="58"  y="205" text-anchor="end"    class="ax-bold">筆墨精進</text>
+          <text x="58"  y="217" text-anchor="end"    class="ax-lbl">主動練習</text>
+          <text x="58"  y="87"  text-anchor="end"    class="ax-bold">在地扎根</text>
+          <text x="58"  y="99"  text-anchor="end"    class="ax-lbl">社群參與</text>
+        </svg>
+      </div>
 
-        if (!globalData) return;
+      <div class="stats-grid">
+        <div class="stat-row"><div class="stat-label">🎙️ 聲韻修煉</div><div class="stat-val" id="sv0">—</div></div>
+        <div class="stat-row"><div class="stat-label">📖 文字涵養</div><div class="stat-val" id="sv1">—</div></div>
+        <div class="stat-row"><div class="stat-label">📺 耳目浸潤</div><div class="stat-val" id="sv2">—</div></div>
+        <div class="stat-row"><div class="stat-label">✍️ 筆墨精進</div><div class="stat-val" id="sv3">—</div></div>
+        <div class="stat-row full"><div class="stat-label">📍 在地扎根</div><div class="stat-val" id="sv4">—</div></div>
+      </div>
 
-        const radar  = globalData.radar[period];
-        const stats  = globalData.stats[period];
+      <div class="suggest">
+        <div class="suggest-title">💡 續命建議</div>
+        <span id="suggestText">—</span>
+      </div>
+    </div>
 
-        radarChart.data.datasets[0].data = radar;
-        radarChart.update();
+    <!-- 五藝完成進度 -->
+    <div class="sec-title">五藝完成進度</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div class="total-bar-wrap">
+        <div class="total-bar-label"><span>今日總完成度</span><span id="totalDoneLabel">— / 15 項</span></div>
+        <div class="bar-bg"><div class="bar-fill" id="totalBarFill" style="width:0%; background:linear-gradient(90deg,#2d8c50,var(--gold));"></div></div>
+      </div>
 
-        const tableBody = document.getElementById('stat-table-body');
-        tableBody.innerHTML = RADAR_LABELS.map((label, i) => `
-            <tr class="border-b border-white/5">
-                <td class="py-2.5 opacity-70">${label}</td>
-                <td class="py-2.5 text-right font-mono gold-text">${stats[i]}</td>
-            </tr>
-        `).join('');
+      <!-- 一藝 聲韻修煉 -->
+      <div class="art-item">
+        <div class="art-header">
+          <div class="art-name">🎙️ 一藝・聲韻修煉</div>
+          <div class="art-badge" id="ab0">—</div>
+        </div>
+        <div class="art-bar-bg"><div class="art-bar-fill" id="af0" style="width:0%;"></div></div>
+        <div class="sub-list" id="sl0"></div>
+      </div>
+      <div class="divider"></div>
 
-        // 續命建議：找最低維度
-        const minIdx = radar.indexOf(Math.min(...radar));
-        const adviceMap = [
-            '在地打卡次數偏低，建議本周前往友善節點現場打卡。',
-            '語音朗讀次數偏低，建議每日錄一段短短的台語語音。',
-            '廣播收聽較少，可以開啟寶島新聲 FM98.5 邊做事邊聽。',
-            '繪本閱讀進度偏慢，建議每天讀 1-2 頁台語繪本。',
-            '治理投票偏少，下次看到節點投票通知記得參與。',
-        ];
-        document.getElementById('ai-suggestion').textContent = adviceMap[minIdx];
-    }
+      <!-- 二藝 文字涵養 -->
+      <div class="art-item">
+        <div class="art-header">
+          <div class="art-name">📖 二藝・文字涵養</div>
+          <div class="art-badge" id="ab1">—</div>
+        </div>
+        <div class="art-bar-bg"><div class="art-bar-fill" id="af1" style="width:0%;"></div></div>
+        <div class="sub-list" id="sl1"></div>
+      </div>
+      <div class="divider"></div>
 
-    // ============================================================
-    // 渲染主資料
-    // ============================================================
-    function removeSkeleton(el) {
-        if (el) el.classList.remove('skeleton', 'h-8', 'w-40', 'mx-auto');
-    }
+      <!-- 三藝 耳目浸潤 -->
+      <div class="art-item">
+        <div class="art-header">
+          <div class="art-name">📺 三藝・耳目浸潤</div>
+          <div class="art-badge" id="ab2">—</div>
+        </div>
+        <div class="art-bar-bg"><div class="art-bar-fill" id="af2" style="width:0%;"></div></div>
+        <div class="sub-list" id="sl2"></div>
+      </div>
+      <div class="divider"></div>
 
-    function renderData(data) {
-        globalData = data;
-        const f = data.family;
+      <!-- 四藝 筆墨精進 -->
+      <div class="art-item">
+        <div class="art-header">
+          <div class="art-name">✍️ 四藝・筆墨精進</div>
+          <div class="art-badge" id="ab3">—</div>
+        </div>
+        <div class="art-bar-bg"><div class="art-bar-fill" id="af3" style="width:0%;"></div></div>
+        <div class="sub-list" id="sl3"></div>
+      </div>
+      <div class="divider"></div>
 
-        // 家庭基本資訊
-        const nameEl = document.getElementById('familyName');
-        removeSkeleton(nameEl);
-        nameEl.textContent = f.familyName;
+      <!-- 五藝 在地扎根 -->
+      <div class="art-item" style="margin-bottom:0">
+        <div class="art-header">
+          <div class="art-name">📍 五藝・在地扎根</div>
+          <div class="art-badge" id="ab4">—</div>
+        </div>
+        <div class="art-bar-bg"><div class="art-bar-fill" id="af4" style="width:0%;"></div></div>
+        <div class="sub-list" id="sl4"></div>
+      </div>
+    </div>
 
-        document.getElementById('familyId').textContent     = 'ID: ' + f.familyId;
-        document.getElementById('familySocial').textContent = f.socialName + '・' + f.region;
-        document.getElementById('streakDays').textContent   = '🔥 ' + f.streakDays + ' 天';
-        document.getElementById('totalScore').textContent   = '🏆 ' + f.totalScore.toLocaleString();
-        document.getElementById('totalCheckins').textContent = '📍 ' + f.totalCheckins + ' 次';
-        document.getElementById('participationLabel').textContent = f.participationLabel;
+    <!-- 文化續命熱度圖 -->
+    <div class="sec-title">文化續命熱度圖</div>
+    <div class="card" style="margin-bottom:16px;">
+      <div style="font-size:11px; color:var(--text-dim); margin-bottom:12px;" id="heatLabel">載入中…</div>
+      <div class="heatmap-grid" id="heatGrid"></div>
+      <div class="heat-meta" style="margin-top:10px;">
+        <span id="heatStart">—</span>
+        <div class="heat-legend">
+          <span style="margin-right:4px;">活躍度</span>
+          <div class="lc" style="background:var(--card2);"></div>
+          <div class="lc" style="background:#2d5c30;"></div>
+          <div class="lc" style="background:#4a8c4e;"></div>
+          <div class="lc" style="background:#6ab870;"></div>
+          <div class="lc" style="background:var(--gold);"></div>
+        </div>
+        <span>今日</span>
+      </div>
+      <div style="font-size:11px; color:var(--text-dim); text-align:center; margin-top:10px;">
+        連續打卡能有效提升「語言參與度」
+      </div>
+    </div>
 
-        // 勳章
-        const badgesRow  = document.getElementById('badges-row');
-        const badgesDesc = document.getElementById('badges-desc');
-        badgesRow.innerHTML = data.badges.map(b =>
-            `<span title="${b.title}" class="${b.earned ? 'drop-shadow-md' : 'opacity-20 grayscale'}">${b.emoji}</span>`
-        ).join('');
-        const earned = data.badges.filter(b => b.earned).map(b => b.title);
-        badgesDesc.textContent = earned.length > 0
-            ? '已獲得：' + earned.join('、')
-            : '尚未獲得任何勳章，繼續加油！';
+    <!-- 治理投票 -->
+    <div class="sec-title">治理投票</div>
+    <div class="gov-placeholder">
+      <div style="font-size:32px; margin-bottom:8px; opacity:.5;">🗳️</div>
+      <div style="font-size:14px; color:var(--text-dim); margin-bottom:4px;">治理投票功能即將上線</div>
+      <div style="font-size:12px; color:var(--text-dim); margin-top:4px; line-height:1.6;">
+        未來將根據社群建議開放投票機制<br>讓每位成員共同守護台語文化
+      </div>
+      <div class="gov-badge">🔜 敬請期待</div>
+    </div>
 
-        // 雷達圖 + 統計
-        updateStats('day');
+  </div>
+</div><!-- end mainContent -->
 
-        // 熱度圖
-        renderHeatmap(data.heatmap, f.regDate);
-    }
+<script>
+// ══════════════════════════════════════════
+// GAS API 網址
+// ══════════════════════════════════════════
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbwDv3vDAqSDd0KiJvqg78GsFGVOySMAgP1UFNfyH_I4a7JxMGS0AD1jVPl3ymFQWrM1lA/exec';
 
-    // ============================================================
-    // 熱度圖
-    // ============================================================
-    function renderHeatmap(activeDates, regDate) {
-        const heatmap = document.getElementById('heatmap');
-        heatmap.innerHTML = '';
+// 五藝子項目定義
+const ARTS = [
+  { key:'voice',   items:[
+    {k:'tts',           label:'TTS語音查詢'},
+    {k:'tailo',         label:'台羅拼音查詢'},
+    {k:'tone',          label:'聲調學習'},
+    {k:'recording',     label:'錄音朗讀'},
+    {k:'scoring',       label:'發音評分'}
+  ]},
+  { key:'text',    items:[
+    {k:'daily',         label:'每日台語閱讀'},
+    {k:'book',          label:'繪本讀冊'},
+    {k:'picture',       label:'圖片學習'}
+  ]},
+  { key:'media',   items:[
+    {k:'video',         label:'看影片'},
+    {k:'radio',         label:'聽電台廣播'},
+    {k:'listen',        label:'聽台語確認'}
+  ]},
+  { key:'writing', items:[
+    {k:'typing',        label:'打字練習'},
+    {k:'ai',            label:'AI對話'}
+  ]},
+  { key:'local',   items:[
+    {k:'familyCheckin', label:'家庭打卡'},
+    {k:'envCheckin',    label:'友善環境打卡'}
+  ]}
+];
 
-        const activeSet = new Set(activeDates);
-        const today     = new Date();
-        // 往前推 52 周（364 天）
-        const start = new Date(today);
-        start.setDate(start.getDate() - 363);
-        // 對齊到星期日
-        start.setDate(start.getDate() - start.getDay());
+// 雷達圖5個頂點（外圍100%）
+// top=聲韻 TR=文字 BR=耳目 BL=筆墨 TL=在地
+const RADAR_OUTER = [
+  [150, 42],   // 聲韻 top
+  [228, 93],   // 文字 TR
+  [228, 207],  // 耳目 BR
+  [72,  207],  // 筆墨 BL
+  [72,  93]    // 在地 TL
+];
+const CX = 150, CY = 150;
 
-        for (let w = 0; w < 52; w++) {
-            const week = document.createElement('div');
-            week.className = 'flex flex-col gap-1';
-            for (let d = 0; d < 7; d++) {
-                const date = new Date(start);
-                date.setDate(start.getDate() + w * 7 + d);
-                const dateStr = date.toISOString().slice(0, 10);
-                const active  = activeSet.has(dateStr);
-                const day     = document.createElement('div');
-                day.className = `w-3 h-3 ${active ? 'bg-[#D4AF37]' : 'bg-[#1A361A]'} rounded-sm opacity-${active ? '90' : '60'} border border-white/5`;
-                day.title     = dateStr;
-                week.appendChild(day);
-            }
-            heatmap.appendChild(week);
-        }
+function radarPoint(idx, ratio) {
+  const [ox, oy] = RADAR_OUTER[idx];
+  return [
+    CX + ratio * (ox - CX),
+    CY + ratio * (oy - CY)
+  ];
+}
 
-        document.getElementById('heatmap-start').textContent =
-            (regDate || '系統啟動') + ' 起';
-    }
+function updateRadar(artRatios) {
+  const keys = ['voice','text','media','writing','local'];
+  const pts = keys.map((k, i) => radarPoint(i, artRatios[k].ratio));
+  document.getElementById('radarPoly').setAttribute('points',
+    pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' ')
+  );
+  pts.forEach((p, i) => {
+    const c = document.getElementById('rc' + i);
+    c.setAttribute('cx', p[0].toFixed(1));
+    c.setAttribute('cy', p[1].toFixed(1));
+  });
+}
 
-    // ============================================================
-    // 主程式
-    // ============================================================
-    async function loadData() {
-        // 從 URL 取得 fid
-        const params = new URLSearchParams(window.location.search);
-        const fid    = params.get('fid') || DEFAULT_FID;
+function badgeClass(done, total) {
+  if (done === total) return 'done';
+  if (done === 0) return 'none';
+  return 'partial';
+}
 
-        initRadar();
+function barColor(done, total) {
+  if (done === total) return 'linear-gradient(90deg,#2d8c50,#4caf6a)';
+  return 'linear-gradient(90deg,#8a6e2e,#c9a84c)';
+}
 
-        if (!GAS_URL || GAS_URL.includes('YOUR_GAS')) {
-            document.body.classList.add('offline-mode');
-            renderData(FALLBACK);
-            return;
-        }
+function participationLevel(totalDone) {
+  if (totalDone >= 12) return '台語達人';
+  if (totalDone >= 8)  return '積極參與';
+  if (totalDone >= 4)  return '穩定學習';
+  if (totalDone >= 1)  return '初步參與';
+  return '尚未開始';
+}
 
-        try {
-            const res  = await fetch(
-                `${GAS_URL}?action=getFamilyDetail&fid=${encodeURIComponent(fid)}`,
-                { redirect: 'follow' }
-            );
-            const data = await res.json();
-            if (data.success) {
-                renderData(data);
-            } else {
-                throw new Error(data.error || '資料錯誤');
-            }
-        } catch (err) {
-            console.warn('API 失敗，啟用離線模式:', err);
-            document.body.classList.add('offline-mode');
-            renderData(FALLBACK);
-        }
-    }
+function buildSuggestion(artRatios, todayItems) {
+  const weak = [];
+  if (artRatios.voice.ratio  === 0) weak.push('聲韻修煉');
+  if (artRatios.text.ratio   === 0) weak.push('文字涵養');
+  if (artRatios.media.ratio  === 0) weak.push('耳目浸潤');
+  if (artRatios.writing.ratio=== 0) weak.push('筆墨精進');
+  if (artRatios.local.ratio  === 0) weak.push('在地扎根');
 
-    loadData();
-    </script>
+  if (weak.length === 0) return '五藝今日均有涉獵，台語文化根基穩固，繼續保持！';
+  if (weak.includes('在地扎根') && weak.includes('耳目浸潤'))
+    return '耳目浸潤與在地扎根今日尚未啟動，建議收聽台語廣播，並前往友善環境打卡，讓五藝均衡生根。';
+  if (weak.includes('在地扎根'))
+    return '「在地扎根」今日尚未打卡，建議前往友善節點現場，讓台語紮根在地。';
+  if (weak.includes('耳目浸潤'))
+    return '今日尚未收聽廣播或看影片，建議開啟寶島電台，沉浸台語語境。';
+  return weak.join('、') + ' 今日尚未完成，建議均衡發展五藝。';
+}
+
+function renderPage(d) {
+  // 個人資料
+  document.getElementById('profileName').textContent = d.familyName;
+  document.getElementById('profileOrg').textContent  = d.socialName;
+  document.getElementById('proverb').textContent     = d.proverb;
+  document.getElementById('proverbSub').textContent  = d.proverbSub;
+  document.getElementById('streakDays').textContent  = d.streakDays + ' 天';
+  document.getElementById('totalScore').textContent  = d.totalScore.toLocaleString();
+  document.getElementById('totalCheckin').textContent= d.totalCheckin + ' 次';
+  document.getElementById('todayDone').textContent   = d.totalDone + '/15';
+  document.getElementById('partiTag').textContent    = participationLevel(d.totalDone);
+
+  // 勳章
+  const ALL_BADGES = [
+    { key:'文化守護', icon:'🛡️' },
+    { key:'台語達人', icon:'🌟' },
+    { key:'知識探索', icon:'📖' },
+    { key:'在地深耕', icon:'📍' }
+  ];
+  const badgeRow = document.getElementById('badgeRow');
+  badgeRow.innerHTML = ALL_BADGES.map(b => {
+    const earned = d.badges.includes(b.key);
+    return `<div class="badge ${earned ? 'earned' : 'locked'}">${b.icon} ${b.key}</div>`;
+  }).join('');
+
+  // 雷達圖
+  updateRadar(d.artRatios);
+
+  // 雷達統計
+  const artKeys = ['voice','text','media','writing','local'];
+  artKeys.forEach((k, i) => {
+    const r = d.artRatios[k];
+    const el = document.getElementById('sv' + i);
+    el.textContent = r.done + '/' + r.total + ' 項';
+    el.className   = 'stat-val' + (r.done === 0 ? ' zero' : '');
+  });
+
+  // 續命建議
+  document.getElementById('suggestText').textContent = buildSuggestion(d.artRatios, d.todayItems);
+
+  // 五藝進度
+  const pct = Math.round((d.totalDone / 15) * 100);
+  document.getElementById('totalDoneLabel').textContent = d.totalDone + ' / 15 項';
+  setTimeout(() => {
+    document.getElementById('totalBarFill').style.width = pct + '%';
+  }, 100);
+
+  ARTS.forEach((art, i) => {
+    const r    = d.artRatios[art.key];
+    const done = r.done;
+    const tot  = r.total;
+    const cls  = badgeClass(done, tot);
+
+    const badge = document.getElementById('ab' + i);
+    badge.textContent = done + '/' + tot + ' 完成';
+    badge.className   = 'art-badge ' + cls;
+
+    setTimeout(() => {
+      const fill = document.getElementById('af' + i);
+      fill.style.width      = Math.round(r.ratio * 100) + '%';
+      fill.style.background = barColor(done, tot);
+    }, 200 + i * 100);
+
+    const subList = document.getElementById('sl' + i);
+    subList.innerHTML = art.items.map(item => {
+      const isDone = d.todayItems[item.k];
+      return `<div class="sub-item ${isDone ? 'done' : 'none'}">
+        <span class="sub-dot"></span>${item.label}
+      </div>`;
+    }).join('');
+  });
+
+  // 熱度圖
+  const grid = document.getElementById('heatGrid');
+  grid.innerHTML = '';
+  d.heatmap.forEach(l => {
+    const c = document.createElement('div');
+    c.className = 'hc' + (l > 0 ? ' l' + l : '');
+    grid.appendChild(c);
+  });
+
+  // 熱度圖起始日期（60天前）
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 59);
+  document.getElementById('heatStart').textContent = startDate.toLocaleDateString('zh-TW', {
+    timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit'
+  }).replace(/\//g, '-');
+  document.getElementById('heatLabel').textContent =
+    d.regDate + ' 起・共 ' + d.totalDays + ' 天';
+
+  // 顯示內容
+  document.getElementById('loadingWrap').style.display  = 'none';
+  document.getElementById('mainContent').style.display  = 'block';
+}
+
+// ══════════════════════════════════════════
+// 主程式：取得 fid → 呼叫 API → 渲染
+// ══════════════════════════════════════════
+async function init() {
+  const params = new URLSearchParams(location.search);
+  const fid    = params.get('fid') || 'F17712690018462140'; // demo fallback
+
+  try {
+    const url  = GAS_URL + '?action=userProfile&fid=' + encodeURIComponent(fid);
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    renderPage(data);
+  } catch (e) {
+    document.getElementById('loadingWrap').innerHTML =
+      '<div style="color:#c94040; padding:20px;">⚠️ 資料載入失敗<br><small>' + e.message + '</small></div>';
+  }
+}
+
+// Tab（目前純UI，未來可接本周/本月）
+document.querySelectorAll('.tab').forEach(t => {
+  t.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+init();
+</script>
 </body>
 </html>
