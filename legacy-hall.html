@@ -361,7 +361,8 @@
 
   <!-- ═══ 台語五藝 ═══ -->
   <div class="sec">
-    <div class="sec-title">台語五藝・今日學習查詢</div>
+    <div class="sec-title" id="artSecTitle">台語五藝・今日學習查詢</div>
+    <div id="radarSpinner" style="display:none; text-align:center; font-size:12px; color:var(--text-dim); padding:4px 0;">⏳ 載入中…</div>
 
     <div class="tab-bar" style="margin-bottom:16px;">
       <div class="tab active">今日</div>
@@ -743,13 +744,88 @@ async function init() {
   }
 }
 
-// Tab（目前純UI，未來可接本周/本月）
+// ── Tab 切換（今日/本周/本月，重新呼叫 API）──
+let currentRange = 'today';
+const rangeMap   = { '今日': 'today', '本周': 'week', '本月': 'month' };
+
 document.querySelectorAll('.tab').forEach(t => {
   t.addEventListener('click', function() {
+    const newRange = rangeMap[this.textContent.trim()];
+    if (newRange === currentRange) return;
+    currentRange = newRange;
     document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
     this.classList.add('active');
+    refreshData();
   });
 });
+
+async function refreshData() {
+  const params  = new URLSearchParams(location.search);
+  const fid     = params.get('fid') || 'F17712690018462140';
+  const spinner = document.getElementById('radarSpinner');
+  if (spinner) spinner.style.display = 'block';
+
+  try {
+    const url  = GAS_URL + '?action=userProfile&fid=' + encodeURIComponent(fid) + '&range=' + currentRange;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    updateRangeSection(data);
+  } catch(e) {
+    console.error('[Tab] 切換失敗:', e.message);
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+  }
+}
+
+// 只更新五藝蜘蛛圖區塊（不重新渲染整頁）
+function updateRangeSection(d) {
+  // 蜘蛛圖
+  updateRadar(d.artRatios);
+
+  // 蜘蛛圖統計數字
+  const artKeys = ['voice','text','media','writing','local'];
+  artKeys.forEach((k, i) => {
+    const r  = d.artRatios[k];
+    const el = document.getElementById('sv' + i);
+    el.textContent = r.done + '/' + r.total + ' 項';
+    el.className   = 'stat-val' + (r.done === 0 ? ' zero' : '');
+  });
+
+  // 五藝進度條
+  ARTS.forEach((art, i) => {
+    const r    = d.artRatios[art.key];
+    const done = r.done, tot = r.total;
+    const badge = document.getElementById('ab' + i);
+    badge.textContent = done + '/' + tot + ' 完成';
+    badge.className   = 'art-badge ' + badgeClass(done, tot);
+    const fill = document.getElementById('af' + i);
+    fill.style.width      = Math.round(r.ratio * 100) + '%';
+    fill.style.background = barColor(done, tot);
+
+    // 子項目清單
+    const subList = document.getElementById('sl' + i);
+    subList.innerHTML = art.items.map(item => {
+      const isDone = d.todayItems[item.k];
+      return `<div class="sub-item ${isDone ? 'done' : 'none'}">
+        <span class="sub-dot"></span>${item.label}
+      </div>`;
+    }).join('');
+  });
+
+  // 台語五藝區塊標題更新
+  const rangeLabel = { today: '今日', week: '本周', month: '本月' };
+  const secTitle = document.querySelector('.sec-title');
+  if (secTitle) secTitle.textContent = '台語五藝・' + rangeLabel[currentRange] + '學習查詢';
+
+  // 建議文字
+  document.getElementById('suggestText').textContent = buildSuggestion(d.artRatios, d.todayItems);
+
+  // 總完成度
+  const pct = Math.round((d.totalDone / 14) * 100);
+  document.getElementById('totalDoneLabel').textContent = d.totalDone + ' / 14 項';
+  document.getElementById('totalBarFill').style.width = pct + '%';
+}
 
 init();
 </script>
