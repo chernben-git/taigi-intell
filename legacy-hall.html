@@ -186,10 +186,14 @@
   .awareness-badge-row { display:flex; gap:14px; flex-wrap:wrap; margin-top:6px; }
   .awareness-badge-item { text-align:center; }
   .awareness-badge-item img {
-    width:60px; height:60px; object-fit:contain;
+    width:68px; height:68px; object-fit:contain;
     filter: drop-shadow(0 0 8px rgba(196,154,58,0.5));
     transition: transform 0.2s;
+    display:block; margin:0 auto;
   }
+  /* 榕樹（習慣）放大補齊視覺大小 */
+  #ab-habit img { transform: scale(1.12); }
+  #ab-habit img:hover { transform: scale(1.2); }
   .awareness-badge-item img:hover { transform: scale(1.08); }
   .awareness-badge-item.locked img {
     filter: grayscale(100%) opacity(0.25);
