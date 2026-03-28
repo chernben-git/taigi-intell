@@ -185,14 +185,13 @@
   /* ── 意識培育獎章 ── */
   .awareness-badge-row { display:flex; gap:20px; flex-wrap:wrap; margin-top:6px; }
   .awareness-badge-item { text-align:center; }
-  .awareness-badge-wrap { width:72px; height:72px; display:flex; align-items:center; justify-content:center; }
-  .awareness-badge-canvas {
-    width:72px; height:72px;
-    border-radius:50%;
+  .awareness-badge-item img {
+    width:72px; height:72px; object-fit:contain;
+    display:block; margin:0 auto;
     transition: transform 0.2s, opacity 0.2s;
   }
-  .awareness-badge-canvas:hover { transform: scale(1.08); }
-  .awareness-badge-item.locked .awareness-badge-canvas { opacity:0.25; filter:grayscale(100%); }
+  .awareness-badge-item img:hover { transform:scale(1.08); }
+  .awareness-badge-item.locked img { opacity:0.3; filter:grayscale(100%); }
   .awareness-badge-name {
     font-size:10px; color:var(--gold); font-weight:600;
     margin-top:5px; line-height:1.3;
@@ -381,15 +380,11 @@
       <div style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:10px; letter-spacing:2px;">意識培育獎章</div>
       <div class="awareness-badge-row" id="awarenessBadgeRow">
         <div class="awareness-badge-item locked" id="ab-habit">
-          <div class="awareness-badge-wrap">
-            <canvas class="awareness-badge-canvas" id="canvas-habit" width="144" height="144"></canvas>
-          </div>
+          <img src="https://familyhistroy-tree.netlify.app/badge-habit.png" alt="台語習慣家庭" />
           <div class="awareness-badge-name">台語習慣家庭</div>
         </div>
         <div class="awareness-badge-item locked" id="ab-culture">
-          <div class="awareness-badge-wrap">
-            <canvas class="awareness-badge-canvas" id="canvas-culture" width="144" height="144"></canvas>
-          </div>
+          <img src="https://familyhistroy-tree.netlify.app/badge-culture.png" alt="台語文化家庭" />
           <div class="awareness-badge-name">台語文化家庭</div>
         </div>
       </div>
@@ -868,54 +863,7 @@ function updateRangeSection(d) {
   document.getElementById('totalBarFill').style.width = pct + '%';
 }
 
-// ── Canvas 去背：用 fetch 繞過 CORS，把灰/白像素變透明 ──
-function drawBadgeToCanvas(canvasEl, url) {
-  fetch(url)
-    .then(r => r.blob())
-    .then(blob => {
-      const blobUrl = URL.createObjectURL(blob);
-      const img = new Image();
-      img.onload = function() {
-        const W = canvasEl.width, H = canvasEl.height;
-        const ctx = canvasEl.getContext('2d');
-        ctx.clearRect(0, 0, W, H);
-        // 先畫到離屏 canvas 取像素
-        const off = document.createElement('canvas');
-        off.width = img.naturalWidth; off.height = img.naturalHeight;
-        const octx = off.getContext('2d');
-        octx.drawImage(img, 0, 0);
-        const data = octx.getImageData(0, 0, off.width, off.height);
-        const d = data.data;
-        // 取四角樣本作為背景色
-        const corners = [0, (off.width-1)*4,
-          (off.height-1)*off.width*4,
-          ((off.height-1)*off.width + off.width-1)*4];
-        let sr=0,sg=0,sb=0;
-        corners.forEach(i=>{ sr+=d[i]; sg+=d[i+1]; sb+=d[i+2]; });
-        const br=sr/4, bg=sg/4, bb=sb/4;
-        const thr = 50;
-        for (let i=0; i<d.length; i+=4) {
-          if (Math.abs(d[i]-br)<thr && Math.abs(d[i+1]-bg)<thr && Math.abs(d[i+2]-bb)<thr)
-            d[i+3]=0;
-        }
-        octx.putImageData(data, 0, 0);
-        // 縮放繪到目標 canvas
-        ctx.drawImage(off, 0, 0, W, H);
-        URL.revokeObjectURL(blobUrl);
-      };
-      img.src = blobUrl;
-    })
-    .catch(function() {
-      // fetch 失敗：直接畫原圖
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = function() {
-        const ctx = canvasEl.getContext('2d');
-        ctx.drawImage(img, 0, 0, canvasEl.width, canvasEl.height);
-      };
-      img.src = url;
-    });
-}
+// ── 意識培育獎章去背（PNG 本身若有透明底則自動透明）──
 
 // ── 意識培育獎章（從 localStorage 讀取）──
 function renderAwarenessBadges() {
@@ -935,11 +883,7 @@ function renderAwarenessBadges() {
   if (earnHabit)   { habitEl.classList.remove('locked'); }
   if (earnCulture) { cultureEl.classList.remove('locked'); }
 
-  // Canvas 去背繪製
-  drawBadgeToCanvas(document.getElementById('canvas-habit'),
-    'https://familyhistroy-tree.netlify.app/badge-habit.png');
-  drawBadgeToCanvas(document.getElementById('canvas-culture'),
-    'https://familyhistroy-tree.netlify.app/badge-culture.png');
+
 
   if (earnCulture) {
     progressEl.textContent = '🏅 已獲得台語習慣家庭 ＋ 台語文化家庭獎章';
@@ -954,7 +898,9 @@ function renderAwarenessBadges() {
   }
 }
 
-renderAwarenessBadges();
+document.addEventListener("DOMContentLoaded", function() {
+  renderAwarenessBadges();
+});
 
 init();
 </script>
