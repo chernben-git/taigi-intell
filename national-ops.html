@@ -311,6 +311,14 @@
                     <div style="text-align: center; padding: 20px; opacity: 0.4;"><span class="loading-spinner"></span></div>
                 </div>
             </div>
+
+            <!-- ══ 縣市統計 ══ -->
+            <div style="background: var(--surface); border: 1px solid var(--gold-dim); border-radius: 12px; padding: 16px;">
+                <div class="section-title">🗺️ 縣市學習分佈</div>
+                <div id="county-stats">
+                    <div style="text-align: center; padding: 20px; opacity: 0.4;"><span class="loading-spinner"></span></div>
+                </div>
+            </div>
         </div>
     </main>
 
@@ -594,6 +602,58 @@
         }
     }
 
+    // ══ 縣市統計 ════════════════════════════════════════════
+    function renderCountyStats(socialRanking, families) {
+        const el = document.getElementById('county-stats');
+        if (!el) return;
+
+        // 從 socialRanking 取得各社群資料，對應縣市
+        // GAS 回傳的 socialRanking: [{name, score}]
+        // 縣市對應從 COUNTY_MAP 靜態定義（對應 5_社團表 Region）
+        const COUNTY_MAP = {
+            '台語文創意園區': '彰化',
+            '彰化教會':       '彰化',
+            '員東路教會':     '彰化',
+            '社區台語讀書會': '台中',
+            '陽明交大人工智慧語音研發中心': '新竹',
+        };
+
+        // 依縣市分組累計積分
+        const countyData = {};
+        (socialRanking || []).forEach(s => {
+            const county = COUNTY_MAP[s.name] || '其他';
+            if (!countyData[county]) countyData[county] = { county, score: 0, socials: [] };
+            countyData[county].score += s.score;
+            countyData[county].socials.push(s.name);
+        });
+
+        const sorted = Object.values(countyData).sort((a, b) => b.score - a.score);
+        const maxScore = sorted[0]?.score || 1;
+
+        if (sorted.length === 0) {
+            el.innerHTML = '<div style="text-align:center;opacity:0.4;padding:16px;">暫無資料</div>';
+            return;
+        }
+
+        const rows = sorted.map((c, i) => {
+            const pct = Math.round(c.score / maxScore * 100);
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}.`;
+            return `
+            <div style="margin-bottom:12px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+                    <span style="font-size:0.85rem;font-weight:600;color:var(--gold);">${medal} ${c.county}</span>
+                    <span style="font-size:0.75rem;color:var(--text-muted);">${c.score.toLocaleString()} 分</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.06);border-radius:4px;height:6px;margin-bottom:4px;">
+                    <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--gold-dim),var(--gold));border-radius:4px;transition:width 0.8s ease;"></div>
+                </div>
+                <div style="font-size:0.65rem;color:var(--text-muted);opacity:0.7;">${c.socials.join('・')}</div>
+            </div>`;
+        }).join('');
+
+        el.innerHTML = rows;
+    }
+
     function applyData(data) {
         renderKPI(data.kpi);
         renderNodes(data.nodes || []);
@@ -604,6 +664,7 @@
         renderRanking('family-ranking', data.familyRanking, maxFamily, myFamilyName);
         renderActivityBreakdown(data.activityBreakdown);
         renderTopPlaces(data.topPlaces);
+        renderCountyStats(data.socialRanking);
         updateTicker(data);
     }
 
