@@ -788,7 +788,10 @@ function updateRangeSection(d) {
   artKeys.forEach((k, i) => {
     const r  = d.artRatios[k];
     const el = document.getElementById('sv' + i);
-    el.textContent = r.done + '/' + r.total + ' 項';
+    const label = d.range === 'today'
+      ? r.done + '/' + r.total + ' 項'
+      : r.done + '次 / 共' + r.total + '次';
+    el.textContent = label;
     el.className   = 'stat-val' + (r.done === 0 ? ' zero' : '');
   });
 
