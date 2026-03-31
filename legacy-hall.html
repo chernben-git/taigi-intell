@@ -756,6 +756,8 @@ function renderPage(d) {
   // 顯示內容
   document.getElementById('loadingWrap').style.display  = 'none';
   document.getElementById('mainContent').style.display  = 'block';
+  // ★ 渲染意識培育獎章（資料從 API 取得）
+  renderAwarenessBadges(d.awareness || null);
 }
 
 // ══════════════════════════════════════════
@@ -863,27 +865,21 @@ function updateRangeSection(d) {
   document.getElementById('totalBarFill').style.width = pct + '%';
 }
 
-// ── 意識培育獎章去背（PNG 本身若有透明底則自動透明）──
-
-// ── 意識培育獎章（從 localStorage 讀取）──
-function renderAwarenessBadges() {
-  const LS_KEY = 'taigi_awareness_scores';
-  let history = [];
-  try { history = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch(e) {}
-
-  const countHabit   = history.filter(h => h.score >= 55).length;
-  const countCulture = history.filter(h => h.score >= 80).length;
-  const earnCulture  = countCulture >= 2;
-  const earnHabit    = earnCulture || countHabit >= 2;
-
-  const habitEl   = document.getElementById('ab-habit');
-  const cultureEl = document.getElementById('ab-culture');
+// ══════════════════════════════════════════
+// ★ 意識培育獎章（從 API 讀取，不再用 localStorage）
+// ══════════════════════════════════════════
+function renderAwarenessBadges(awareness) {
+  if (!awareness) {
+    renderAwarenessBadgesFallback();
+    return;
+  }
+  const { earnHabit, earnCulture, countHabit, countCulture } = awareness;
+  const habitEl    = document.getElementById('ab-habit');
+  const cultureEl  = document.getElementById('ab-culture');
   const progressEl = document.getElementById('awarenessProgress');
 
-  if (earnHabit)   { habitEl.classList.remove('locked'); }
-  if (earnCulture) { cultureEl.classList.remove('locked'); }
-
-
+  if (earnHabit)   habitEl.classList.remove('locked');
+  if (earnCulture) cultureEl.classList.remove('locked');
 
   if (earnCulture) {
     progressEl.textContent = '🏅 已獲得台語習慣家庭 ＋ 台語文化家庭獎章';
@@ -898,8 +894,26 @@ function renderAwarenessBadges() {
   }
 }
 
+// ── Fallback：API 失敗時從 localStorage 讀 ──
+function renderAwarenessBadgesFallback() {
+  const LS_KEY = 'taigi_awareness_scores';
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(LS_KEY) || '[]'); } catch(e) {}
+  const countHabit   = history.filter(h => h.score >= 55).length;
+  const countCulture = history.filter(h => h.score >= 80).length;
+  const earnCulture  = countCulture >= 2;
+  const earnHabit    = earnCulture || countHabit >= 2;
+  renderAwarenessBadges({ earnHabit, earnCulture, countHabit, countCulture });
+}
+
 document.addEventListener("DOMContentLoaded", function() {
-  renderAwarenessBadges();
+  // 3秒後若 API 還沒回來，先用 localStorage fallback
+  setTimeout(() => {
+    const progressEl = document.getElementById('awarenessProgress');
+    if (progressEl && progressEl.textContent === '完成台語家庭意識培育手冊 2 次可領取獎章') {
+      renderAwarenessBadgesFallback();
+    }
+  }, 3000);
 });
 
 init();
