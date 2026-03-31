@@ -182,6 +182,27 @@
   .badge.earned { background:rgba(76,175,106,0.15); color:var(--green); border:1px solid rgba(76,175,106,0.3); }
   .badge.locked { background:rgba(255,255,255,0.04); color:var(--text-dim); border:1px solid var(--border2); }
 
+  /* ── 台語修煉徽章 ── */
+  .mastery-badge-row { display:flex; gap:16px; flex-wrap:wrap; margin-top:6px; }
+  .mastery-badge-item { text-align:center; cursor:default; }
+  .mastery-badge-item img {
+    width:72px; height:72px; object-fit:contain;
+    display:block; margin:0 auto;
+    transition: transform 0.2s, opacity 0.2s;
+  }
+  .mastery-badge-item img:hover { transform:scale(1.08); }
+  .mastery-badge-item.locked img { opacity:0.25; filter:grayscale(100%); }
+  .mastery-badge-name {
+    font-size:10px; color:var(--gold); font-weight:600;
+    margin-top:5px; line-height:1.3;
+  }
+  .mastery-badge-roma {
+    font-size:9px; color:var(--text-dim); margin-top:2px;
+  }
+  .mastery-badge-item.locked .mastery-badge-name { color:var(--text-dim); }
+  .mastery-badge-item.locked .mastery-badge-roma { color:var(--text-dim); opacity:0.5; }
+  .mastery-progress { font-size:11px; color:var(--text-dim); margin-top:8px; line-height:1.6; }
+
   /* ── 意識培育獎章 ── */
   .awareness-badge-row { display:flex; gap:20px; flex-wrap:wrap; margin-top:6px; }
   .awareness-badge-item { text-align:center; }
@@ -370,9 +391,33 @@
     <div class="parti-tag" id="partiTag">積極參與</div>
     <div class="parti-note">基於打卡與互動頻次</div>
 
+    <!-- ── 台語修煉徽章・文化傳承系列 ── -->
     <div style="margin-top:18px; text-align:left;">
-      <div style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:10px; letter-spacing:2px;">治理守護勳章</div>
-      <div class="badge-row" id="badgeRow"></div>
+      <div style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:3px; letter-spacing:2px;">台語修煉徽章</div>
+      <div style="font-size:10px; color:var(--text-dim); margin-bottom:10px; letter-spacing:1px;">文化傳承系列</div>
+      <div class="mastery-badge-row" id="masteryBadgeRow">
+        <div class="mastery-badge-item locked" id="mb-tshoo-siann">
+          <img src="https://familyhistroy-tree.netlify.app/badge-tshoo-siann.png" alt="初聲者" />
+          <div class="mastery-badge-name">初聲者</div>
+          <div class="mastery-badge-roma">Tshōo-siann</div>
+        </div>
+        <div class="mastery-badge-item locked" id="mb-kut-lat-lang">
+          <img src="https://familyhistroy-tree.netlify.app/badge-kut-lat-lang.png" alt="骨力郎" />
+          <div class="mastery-badge-name">骨力郎</div>
+          <div class="mastery-badge-roma">Kut-lat-lâng</div>
+        </div>
+        <div class="mastery-badge-item locked" id="mb-lau-su-hu">
+          <img src="https://familyhistroy-tree.netlify.app/badge-lau-su-hu.png" alt="老師傅" />
+          <div class="mastery-badge-name">老師傅</div>
+          <div class="mastery-badge-roma">Láu-su-hū</div>
+        </div>
+        <div class="mastery-badge-item locked" id="mb-khui-loo-sian-hong">
+          <img src="https://familyhistroy-tree.netlify.app/badge-khui-loo-sian-hong.png" alt="開路先鋒" />
+          <div class="mastery-badge-name">開路先鋒</div>
+          <div class="mastery-badge-roma">Khui-lōo-sian-hong</div>
+        </div>
+      </div>
+      <div class="mastery-progress" id="masteryProgress">完成台語修煉旅程，依序解鎖四枚徽章</div>
     </div>
 
     <!-- ── 意識培育獎章 ── -->
@@ -390,6 +435,13 @@
       </div>
       <div class="awareness-progress" id="awarenessProgress">完成台語家庭意識培育手冊 2 次可領取獎章</div>
     </div>
+
+    <!-- ── 治理守護勳章 ── -->
+    <div style="margin-top:18px; text-align:left;">
+      <div style="font-size:12px; color:var(--gold); font-weight:700; margin-bottom:10px; letter-spacing:2px;">治理守護勳章</div>
+      <div class="badge-row" id="badgeRow"></div>
+    </div>
+
   </div>
 
   <!-- ═══ 台語五藝 ═══ -->
@@ -594,14 +646,12 @@ const ARTS = [
   ]}
 ];
 
-// 雷達圖5個頂點（外圍100%）
-// top=聲韻 TR=文字 BR=耳目 BL=筆墨 TL=在地
 const RADAR_OUTER = [
-  [150.0, 53.4],  // 聲韻 top
-  [241.9, 120.1], // 文字 TR
-  [206.8, 228.2], // 耳目 BR
-  [93.2,  228.2], // 筆墨 BL
-  [58.1,  120.1]  // 在地 TL
+  [150.0, 53.4],
+  [241.9, 120.1],
+  [206.8, 228.2],
+  [93.2,  228.2],
+  [58.1,  120.1]
 ];
 const CX = 150, CY = 150;
 
@@ -664,7 +714,6 @@ function buildSuggestion(artRatios, todayItems) {
 }
 
 function renderPage(d) {
-  // 個人資料
   document.getElementById('profileName').textContent = d.familyName;
   document.getElementById('profileOrg').textContent  = d.socialName;
   document.getElementById('proverb').textContent     = d.proverb;
@@ -675,7 +724,7 @@ function renderPage(d) {
   document.getElementById('todayDone').textContent   = d.totalDone + '/15';
   document.getElementById('partiTag').textContent    = participationLevel(d.totalDone);
 
-  // 勳章
+  // 治理守護勳章
   const ALL_BADGES = [
     { key:'文化守護', icon:'🛡️' },
     { key:'台語達人', icon:'🌟' },
@@ -691,7 +740,6 @@ function renderPage(d) {
   // 雷達圖
   updateRadar(d.artRatios);
 
-  // 雷達統計
   const artKeys = ['voice','text','media','writing','local'];
   artKeys.forEach((k, i) => {
     const r = d.artRatios[k];
@@ -700,10 +748,8 @@ function renderPage(d) {
     el.className   = 'stat-val' + (r.done === 0 ? ' zero' : '');
   });
 
-  // 續命建議
   document.getElementById('suggestText').textContent = buildSuggestion(d.artRatios, d.todayItems);
 
-  // 五藝進度
   const pct = Math.round((d.totalDone / 14) * 100);
   document.getElementById('totalDoneLabel').textContent = d.totalDone + ' / 14 項';
   setTimeout(() => {
@@ -744,7 +790,6 @@ function renderPage(d) {
     grid.appendChild(c);
   });
 
-  // 熱度圖起始日期（60天前）
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 59);
   document.getElementById('heatStart').textContent = startDate.toLocaleDateString('zh-TW', {
@@ -753,19 +798,21 @@ function renderPage(d) {
   document.getElementById('heatLabel').textContent =
     d.regDate + ' 起・共 ' + d.totalDays + ' 天';
 
-  // 顯示內容
   document.getElementById('loadingWrap').style.display  = 'none';
   document.getElementById('mainContent').style.display  = 'block';
-  // ★ 渲染意識培育獎章（資料從 API 取得）
+
+  // ★ 渲染修煉徽章
+  renderMasteryBadges(d.mastery || null);
+  // ★ 渲染意識培育獎章
   renderAwarenessBadges(d.awareness || null);
 }
 
 // ══════════════════════════════════════════
-// 主程式：取得 fid → 呼叫 API → 渲染
+// 主程式
 // ══════════════════════════════════════════
 async function init() {
   const params = new URLSearchParams(location.search);
-  const fid    = params.get('fid') || 'F17712690018462140'; // demo fallback
+  const fid    = params.get('fid') || 'F17712690018462140';
 
   try {
     const url  = GAS_URL + '?action=userProfile&fid=' + encodeURIComponent(fid);
@@ -779,7 +826,7 @@ async function init() {
   }
 }
 
-// ── Tab 切換（今日/本周/本月，重新呼叫 API）──
+// ── Tab 切換 ──
 let currentRange = 'today';
 const rangeMap   = { '今日': 'today', '本周': 'week', '本月': 'month' };
 
@@ -813,12 +860,9 @@ async function refreshData() {
   }
 }
 
-// 只更新五藝蜘蛛圖區塊（不重新渲染整頁）
 function updateRangeSection(d) {
-  // 蜘蛛圖
   updateRadar(d.artRatios);
 
-  // 蜘蛛圖統計數字
   const artKeys = ['voice','text','media','writing','local'];
   artKeys.forEach((k, i) => {
     const r  = d.artRatios[k];
@@ -830,7 +874,6 @@ function updateRangeSection(d) {
     el.className   = 'stat-val' + (r.done === 0 ? ' zero' : '');
   });
 
-  // 五藝進度條
   ARTS.forEach((art, i) => {
     const r    = d.artRatios[art.key];
     const done = r.done, tot = r.total;
@@ -841,7 +884,6 @@ function updateRangeSection(d) {
     fill.style.width      = Math.round(r.ratio * 100) + '%';
     fill.style.background = barColor(done, tot);
 
-    // 子項目清單
     const subList = document.getElementById('sl' + i);
     subList.innerHTML = art.items.map(item => {
       const isDone = d.todayItems[item.k];
@@ -851,22 +893,58 @@ function updateRangeSection(d) {
     }).join('');
   });
 
-  // 台語五藝區塊標題更新
   const rangeLabel = { today: '今日', week: '本周', month: '本月' };
   const secTitle = document.querySelector('.sec-title');
   if (secTitle) secTitle.textContent = '台語五藝・' + rangeLabel[currentRange] + '學習查詢';
 
-  // 建議文字
   document.getElementById('suggestText').textContent = buildSuggestion(d.artRatios, d.todayItems);
 
-  // 總完成度
   const pct = Math.round((d.totalDone / 14) * 100);
   document.getElementById('totalDoneLabel').textContent = d.totalDone + ' / 14 項';
   document.getElementById('totalBarFill').style.width = pct + '%';
 }
 
 // ══════════════════════════════════════════
-// ★ 意識培育獎章（從 API 讀取，不再用 localStorage）
+// ★ 台語修煉徽章
+// ══════════════════════════════════════════
+function renderMasteryBadges(mastery) {
+  const progressEl = document.getElementById('masteryProgress');
+
+  if (!mastery) {
+    progressEl.textContent = '完成台語修煉旅程，依序解鎖四枚徽章';
+    return;
+  }
+
+  const badges = [
+    { id: 'mb-tshoo-siann',      key: 'tshooSiann',      name: '初聲者' },
+    { id: 'mb-kut-lat-lang',     key: 'kutLatLang',      name: '骨力郎' },
+    { id: 'mb-lau-su-hu',        key: 'lauSuHu',         name: '老師傅' },
+    { id: 'mb-khui-loo-sian-hong', key: 'khuiLooSianHong', name: '開路先鋒' }
+  ];
+
+  let earnedCount = 0;
+  badges.forEach(b => {
+    if (mastery[b.key]) {
+      const el = document.getElementById(b.id);
+      if (el) el.classList.remove('locked');
+      earnedCount++;
+    }
+  });
+
+  if (earnedCount === 4) {
+    progressEl.textContent = '🏆 四枚修煉徽章全數達成！開路先鋒永久保留。';
+    progressEl.style.color = 'var(--gold)';
+  } else if (earnedCount > 0) {
+    const next = badges[earnedCount].name;
+    progressEl.textContent = `🌱 已獲得 ${earnedCount} 枚・下一目標：${next}`;
+    progressEl.style.color = 'var(--gold)';
+  } else {
+    progressEl.textContent = '完成台語修煉旅程，依序解鎖四枚徽章';
+  }
+}
+
+// ══════════════════════════════════════════
+// ★ 意識培育獎章
 // ══════════════════════════════════════════
 function renderAwarenessBadges(awareness) {
   if (!awareness) {
@@ -894,7 +972,7 @@ function renderAwarenessBadges(awareness) {
   }
 }
 
-// ── Fallback：API 失敗時從 localStorage 讀 ──
+// ── Fallback ──
 function renderAwarenessBadgesFallback() {
   const LS_KEY = 'taigi_awareness_scores';
   let history = [];
@@ -907,7 +985,6 @@ function renderAwarenessBadgesFallback() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  // 3秒後若 API 還沒回來，先用 localStorage fallback
   setTimeout(() => {
     const progressEl = document.getElementById('awarenessProgress');
     if (progressEl && progressEl.textContent === '完成台語家庭意識培育手冊 2 次可領取獎章') {
