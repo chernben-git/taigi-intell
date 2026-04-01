@@ -683,8 +683,9 @@ function badgeClass(done, total) {
 }
 
 function barColor(done, total) {
-  if (done === total) return 'linear-gradient(90deg,#2d8c50,#4caf6a)';
-  return 'linear-gradient(90deg,#8a6e2e,#c9a84c)';
+  if (done === total) return 'linear-gradient(90deg,#2d8c50,#4caf6a)';  // 全完成：綠
+  if (done === 0)     return 'linear-gradient(90deg,#1a2e1a,#2a3e2a)';  // 未完成：暗綠灰
+  return 'linear-gradient(90deg,#8a6e2e,#c9a84c)';                      // 部分完成：金黃
 }
 
 function participationLevel(totalDone) {
