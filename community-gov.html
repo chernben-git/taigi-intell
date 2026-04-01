@@ -491,39 +491,6 @@
     // ══════════════════════════════════════════
     // 輔導員每日績效表
     // ══════════════════════════════════════════
-
-    // 合併家庭去重：同一 familyId 保留一筆，統計取最大值
-    function dedupeMembers(members) {
-        const map = new Map();
-        members.forEach(m => {
-            const key = m.familyId;
-            if (!map.has(key)) {
-                map.set(key, Object.assign({}, m));
-            } else {
-                const ex = map.get(key);
-                ex.todayDone     = Math.max(ex.todayDone     || 0, m.todayDone     || 0);
-                ex.totalItems    = Math.max(ex.totalItems    || 0, m.totalItems    || 0);
-                ex.streakDays    = Math.max(ex.streakDays    || 0, m.streakDays    || 0);
-                ex.familyCheckin = Math.max(ex.familyCheckin || 0, m.familyCheckin || 0);
-                if (m.artRatios && ex.artRatios) {
-                    ['voice','text','media','writing','local'].forEach(k => {
-                        if (m.artRatios[k]) {
-                            ex.artRatios[k] = {
-                                done:  Math.max((ex.artRatios[k]?.done  || 0), (m.artRatios[k]?.done  || 0)),
-                                total: Math.max((ex.artRatios[k]?.total || 0), (m.artRatios[k]?.total || 0))
-                            };
-                        }
-                        if (m.artMax && m.artMax[k]) {
-                            ex.artMax = ex.artMax || {};
-                            ex.artMax[k] = Math.max(ex.artMax[k] || 0, m.artMax[k] || 0);
-                        }
-                    });
-                }
-            }
-        });
-        return Array.from(map.values());
-    }
-
     const ART_LABELS = ['聲','文','耳','筆','地'];
     let counselData    = [];   // 所有成員資料
     let counselSocials = [];   // 所有社團名稱
@@ -588,13 +555,19 @@
         }
 
         tbody.innerHTML = data.map(m => {
-            const total = m.totalItems || 14;
-            const done  = m.todayDone  || 0;
-            const g     = gradeInfo(done, total);
-            const isMe  = m.familyId === myFid;
+            const total   = m.totalItems || 14;
+            const done    = m.todayDone  || 0;
+            const g       = gradeInfo(done, total);
+            const isMe    = m.familyId === myFid;
+            const lidSufx = m.lineId
+                ? `<span style="font-size:9px;opacity:.3;margin-left:4px;font-weight:normal;">…${m.lineId.slice(-4)}</span>`
+                : '';
+            const detailParam = m.lineId
+                ? `lid=${encodeURIComponent(m.lineId)}`
+                : `fid=${encodeURIComponent(m.familyId)}`;
             return `<tr>
                 <td>
-                    <div style="font-weight:bold;color:#F5F5DC;">${m.familyName}${isMe?'<span class="my-mark">我</span>':''}</div>
+                    <div style="font-weight:bold;color:#F5F5DC;">${m.familyName}${lidSufx}${isMe?'<span class="my-mark">我</span>':''}</div>
                     <div style="font-size:10px;opacity:.5;margin-top:2px;">${m.socialName}</div>
                 </td>
                 <td>
@@ -611,7 +584,7 @@
                 <td><span class="grade-badge ${g.cls}">${g.label}</span></td>
                 <td>
                     <button class="detail-btn"
-                        onclick="window.open('legacy-hall.html?fid=${m.familyId}','_blank')">
+                        onclick="window.open('legacy-hall.html?${detailParam}','_blank')">
                         詳情
                     </button>
                 </td>
@@ -701,7 +674,7 @@
             if (!data.isCounselor) return;
             document.getElementById('counselor-section').style.display = 'block';
 
-            counselData    = dedupeMembers(data.members || []);
+            counselData    = data.members || [];   // 每筆 Line_ID 獨立保留，不合併
             counselSocials = [...new Set(counselData.map(m => m.socialName))];
             activeSocial   = counselSocials[0] || '';
             buildCounselSocialTabs(counselSocials);
@@ -716,12 +689,12 @@
             document.getElementById('counselor-section').style.display = 'block';
 
             // 示範資料
-            counselData = dedupeMembers([
+            counselData = [
                 { familyId:'F17712690018462140', familyName:'陳冰', socialName:'彰化教會',
                   streakDays:4, todayDone:12, totalItems:14, familyCheckin:1,
                   artRatios:{ voice:{done:3,total:4}, text:{done:3,total:3}, media:{done:2,total:3}, writing:{done:2,total:2}, local:{done:2,total:2} },
                   artMax:{ voice:4, text:3, media:3, writing:2, local:2 } }
-            ]);
+            ];
             counselSocials = ['彰化教會'];
             activeSocial   = '彰化教會';
             buildCounselSocialTabs(counselSocials);
