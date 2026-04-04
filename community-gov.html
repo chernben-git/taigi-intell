@@ -562,9 +562,7 @@
             const lidSufx = m.lineId
                 ? `<span style="font-size:9px;opacity:.3;margin-left:4px;font-weight:normal;">…${m.lineId.slice(-4)}</span>`
                 : '';
-            const detailParam = m.lineId
-                ? `lid=${encodeURIComponent(m.lineId)}`
-                : `fid=${encodeURIComponent(m.familyId)}`;
+            const detailParam = `fid=${encodeURIComponent(m.familyId)}`;
             return `<tr>
                 <td>
                     <div style="font-weight:bold;color:#F5F5DC;">${m.familyName}${lidSufx}${isMe?'<span class="my-mark">我</span>':''}</div>
