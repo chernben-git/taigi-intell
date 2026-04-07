@@ -326,6 +326,7 @@
     <script>
     const GAS_URL     = 'https://script.google.com/macros/s/AKfycbwDv3vDAqSDd0KiJvqg78GsFGVOySMAgP1UFNfyH_I4a7JxMGS0AD1jVPl3ymFQWrM1lA/exec';
     const DEFAULT_FID = '';
+    const DEFAULT_SID = '';
 
     const FALLBACK = {
         success: true, generatedAt: '離線示範',
@@ -437,27 +438,33 @@
 
     async function loadData() {
         const params = new URLSearchParams(window.location.search);
-        const fid    = params.get('fid') || DEFAULT_FID;
+        const sid    = params.get('sid') || DEFAULT_SID;   // ★ 社群負責人登入
+        const fid    = params.get('fid') || DEFAULT_FID;   // 一般成員登入（向後相容）
+        const hasSid = !!sid;
         const hasFid = !!fid;
+        const hasAuth = hasSid || hasFid;
 
-        if (!hasFid) {
+        if (!hasAuth) {
             document.getElementById('my-social-section').style.display = 'none';
             document.getElementById('no-social-hint').style.display    = 'block';
         }
 
-        // 輔導員績效表
-        if (hasFid) loadCounselData(fid);
+        // 輔導員績效表（sid模式用sid，fid模式用fid）
+        if (hasSid) loadCounselDataBySid(sid);
+        else if (hasFid) loadCounselData(fid);
 
         if (!GAS_URL || GAS_URL.includes('YOUR_GAS')) {
             document.body.classList.add('offline-mode');
-            if (hasFid) renderMySocial(FALLBACK);
+            if (hasAuth) renderMySocial(FALLBACK);
             renderNational(FALLBACK);
             return;
         }
 
         try {
             const reqs = [ fetch(`${GAS_URL}?action=getNationalStats`, {redirect:'follow'}) ];
-            if (hasFid) reqs.push(fetch(`${GAS_URL}?action=getSocialDetail&fid=${encodeURIComponent(fid)}`, {redirect:'follow'}));
+            // ★ sid優先，fid向後相容
+            if (hasSid) reqs.push(fetch(`${GAS_URL}?action=getSocialDetail&sid=${encodeURIComponent(sid)}`, {redirect:'follow'}));
+            else if (hasFid) reqs.push(fetch(`${GAS_URL}?action=getSocialDetail&fid=${encodeURIComponent(fid)}`, {redirect:'follow'}));
 
             const ress = await Promise.all(reqs);
             const [nat, soc] = await Promise.all(ress.map(r => r.json()));
@@ -473,9 +480,9 @@
                 social:           soc && soc.success ? soc.social : null,
             });
 
-            if (hasFid && soc && soc.success) {
+            if (hasAuth && soc && soc.success) {
                 renderMySocial(soc);
-            } else if (hasFid) {
+            } else if (hasAuth) {
                 document.getElementById('my-social-section').style.display = 'none';
                 document.getElementById('no-social-hint').style.display    = 'block';
             }
@@ -651,7 +658,39 @@
         return arr;
     }
 
-    async function loadCounselData(fid) {
+    // ★ sid模式：社群負責人直接用sid登入
+    async function loadCounselDataBySid(sid) {
+        myFid = '';
+        const today = new Date().toLocaleDateString('zh-TW',{
+            timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit'
+        }).replace(/\//g,'-');
+        document.getElementById('counsel-date').textContent = '資料日期：' + today;
+
+        try {
+            const url  = GAS_URL + "?action=getCounselorStatsBySid&sid=" + encodeURIComponent(sid);
+            const resp = await fetch(url, { redirect:'follow' });
+            const data = await resp.json();
+
+            if (!data.success) throw new Error(data.error);
+            if (!data.authorized) {
+                console.warn('sid 驗證失敗');
+                return;
+            }
+
+            document.getElementById('counselor-section').style.display = 'block';
+            counselData    = data.members || [];
+            counselSocials = [...new Set(counselData.map(m => m.socialName))];
+            activeSocial   = data.socialName || counselSocials[0] || '';
+            buildCounselSocialTabs(counselSocials);
+            renderCounselTable();
+            renderHeatmapSection();
+
+        } catch(e) {
+            console.warn('sid模式輔導員資料載入失敗:', e);
+        }
+    }
+
+        async function loadCounselData(fid) {
         myFid = fid || '';
         const today = new Date().toLocaleDateString('zh-TW',{
             timeZone:'Asia/Taipei', year:'numeric', month:'2-digit', day:'2-digit'
