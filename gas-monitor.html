@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>咱兜的台語｜GAS 執行監控</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d1117; color: #e6edf3; min-height: 100vh; }
+
+  .header {
+    background: linear-gradient(135deg, #1a4d40 0%, #0a2e26 100%);
+    padding: 20px 24px;
+    border-bottom: 1px solid #30363d;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .header h1 { font-size: 18px; font-weight: 700; color: #a8d8b9; }
+  .header .sub { font-size: 12px; color: #7d8590; margin-top: 2px; }
+  .badge { background: #238636; color: #fff; font-size: 11px; padding: 2px 8px; border-radius: 10px; }
+  .badge.warn { background: #9e6a03; }
+  .badge.danger { background: #da3633; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; padding: 20px; }
+
+  .card {
+    background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px;
+  }
+  .card-title { font-size: 12px; color: #7d8590; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+  .card-title .dot { width: 8px; height: 8px; border-radius: 50%; background: #238636; }
+  .card-title .dot.warn { background: #d29922; }
+  .card-title .dot.danger { background: #da3633; }
+
+  .stat-big { font-size: 36px; font-weight: 700; color: #e6edf3; line-height: 1; }
+  .stat-label { font-size: 12px; color: #7d8590; margin-top: 4px; }
+  .stat-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #21262d; }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-row .name { font-size: 13px; color: #c9d1d9; }
+  .stat-row .val { font-size: 13px; font-weight: 600; }
+  .val.ok { color: #3fb950; }
+  .val.warn { color: #d29922; }
+  .val.danger { color: #f85149; }
+  .val.info { color: #58a6ff; }
+
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: #21262d; color: #7d8590; text-align: left; padding: 8px 10px; font-weight: 600; }
+  td { padding: 8px 10px; border-bottom: 1px solid #21262d; color: #c9d1d9; }
+  tr:hover td { background: #1c2128; }
+  .status-pill { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+  .pill-ok     { background: #0d4429; color: #3fb950; }
+  .pill-warn   { background: #3d2b00; color: #d29922; }
+  .pill-danger { background: #3d0d0d; color: #f85149; }
+  .pill-run    { background: #0c2d6b; color: #58a6ff; }
+
+  .timeline { padding: 0; list-style: none; }
+  .tl-item { display: flex; gap: 12px; padding: 8px 0; border-bottom: 1px solid #21262d; }
+  .tl-item:last-child { border-bottom: none; }
+  .tl-dot { width: 10px; height: 10px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .tl-content { flex: 1; }
+  .tl-title { font-size: 13px; color: #c9d1d9; }
+  .tl-meta { font-size: 11px; color: #7d8590; margin-top: 2px; }
+
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: 1px solid #30363d; background: #21262d; color: #c9d1d9; transition: all 0.15s; }
+  .btn:hover { background: #30363d; border-color: #58a6ff; color: #58a6ff; }
+  .btn.primary { background: #238636; border-color: #2ea043; color: #fff; }
+  .btn.primary:hover { background: #2ea043; }
+  .btn.danger-btn { background: #da3633; border-color: #f85149; color: #fff; }
+
+  .toolbar { padding: 0 20px 0; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .last-update { font-size: 12px; color: #7d8590; margin-left: auto; }
+
+  .timeout-table td .deadline { font-size: 11px; color: #3fb950; }
+  .timeout-table td .no-deadline { font-size: 11px; color: #f85149; }
+
+  .checklist { list-style: none; }
+  .checklist li { padding: 6px 0; font-size: 13px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #21262d; }
+  .checklist li:last-child { border-bottom: none; }
+  .check-icon { font-size: 14px; }
+
+  .copy-btn { cursor: pointer; color: #58a6ff; font-size: 11px; margin-left: 6px; }
+  .copy-btn:hover { text-decoration: underline; }
+
+  code { background: #1c2128; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 12px; color: #a8d8b9; }
+
+  @media (max-width: 600px) {
+    .grid { padding: 12px; gap: 12px; }
+    .stat-big { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🌿 咱兜的台語｜GAS 執行監控</h1>
+    <div class="sub">doPost 卡住防護 · API Timeout 追蹤 · 版本管理</div>
+  </div>
+  <span class="badge" id="system-status">載入中...</span>
+</div>
+
+<div class="toolbar" style="padding: 16px 20px 0;">
+  <button class="btn primary" onclick="refreshAll()">🔄 重新整理</button>
+  <button class="btn" onclick="copyChecklist()">📋 複製檢查清單</button>
+  <span class="last-update" id="last-update">—</span>
+</div>
+
+<div class="grid">
+
+  <!-- ── 版本總覽 ── -->
+  <div class="card" style="grid-column: span 2;">
+    <div class="card-title"><span class="dot"></span>模組版本狀態</div>
+    <div class="table-wrap">
+      <table class="timeout-table">
+        <thead>
+          <tr>
+            <th>模組</th><th>版本</th><th>主要功能</th><th>deadline 保護</th><th>最後更新</th>
+          </tr>
+        </thead>
+        <tbody id="module-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── API 呼叫點清單 ── -->
+  <div class="card" style="grid-column: span 2;">
+    <div class="card-title"><span class="dot"></span>所有 i5 / 廖教授 API 呼叫點</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>模組</th><th>函式</th><th>endpoint</th><th>deadline</th><th>fallback</th></tr>
+        </thead>
+        <tbody id="api-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── 維護 SOP ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot warn"></span>doPost 卡住 SOP</div>
+    <ul class="checklist" id="sop-list"></ul>
+  </div>
+
+  <!-- ── 快速診斷 ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>快速診斷指令</div>
+    <ul class="checklist" id="diag-list"></ul>
+  </div>
+
+  <!-- ── 版本記錄 ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot"></span>Timeout 修復記錄</div>
+    <ul class="timeline" id="timeline"></ul>
+  </div>
+
+  <!-- ── 未來新增 gs 時的守則 ── -->
+  <div class="card">
+    <div class="card-title"><span class="dot warn"></span>新增 .gs 時的守則</div>
+    <div id="rules"></div>
+  </div>
+
+</div>
+
+<script>
+const MODULES = [
+  { file: 'Code.gs',           version: 'v5.15', desc: 'Webhook 主入口',        deadline: true,  updated: '2026-04-04' },
+  { file: 'TTS.gs',            version: 'v1.8',  desc: 'TTS合成/MT翻譯',        deadline: true,  updated: '2026-04-09' },
+  { file: 'TaigiAI.gs',        version: 'v3.1',  desc: 'AI 對話/廖教授MT',      deadline: true,  updated: '2026-04-09' },
+  { file: 'TailoLearning.gs',  version: 'v1.6',  desc: '臺羅拼音學習',          deadline: true,  updated: '2026-04-09' },
+  { file: 'ScoringHandler.gs', version: 'v2.1',  desc: '發音評分',              deadline: true,  updated: '2026-04-05' },
+  { file: 'HealthCheck.gs',    version: 'v1.1',  desc: 'i5 健康檢查',           deadline: true,  updated: '2026-04-05' },
+  { file: 'DailyTaiwanese.gs', version: 'v4.4',  desc: '每日台語/看圖/聽/影片', deadline: false, updated: '2026-03-xx', note: '呼叫 LINE API (reply) 不需 deadline' },
+  { file: 'VoiceHandler.gs',   version: 'v3.2',  desc: 'ASR 批次處理',          deadline: true,  updated: '2026-03-xx' },
+];
+
+const API_CALLS = [
+  { module: 'TTS.gs',           fn: 'synthesizeTtsToUrl',    ep: 'asr.bitfull.tw/tts',              deadline: 10, fallback: '回傳 null → 提示失敗' },
+  { module: 'TTS.gs',           fn: 'convertWavToM4a_',      ep: 'asr.bitfull.tw/convert-audio',    deadline: 10, fallback: '回傳 null → 中斷合成' },
+  { module: 'TTS.gs',           fn: 'storeM4aToServer_',     ep: 'asr.bitfull.tw/store-audio',      deadline: 10, fallback: '回傳 null → 中斷合成' },
+  { module: 'TTS.gs',           fn: 'mandarinToTaigi_',      ep: 'asr.bitfull.tw/translate/to-taigi', deadline: 10, fallback: 'fallback 用華語直送 TTS' },
+  { module: 'TaigiAI.gs',       fn: '_callTaigiAi',          ep: 'asr.bitfull.tw/ai/chat',          deadline: 10, fallback: '回傳 null → 提示稍後再試' },
+  { module: 'TaigiAI.gs',       fn: '_zhToTaigi',            ep: '140.113.30.204:8751/MT/taigi_zh_tw', deadline: 10, fallback: 'fallback 用中文' },
+  { module: 'TaigiAI.gs',       fn: '_wavBase64ToLineAudioUrl', ep: 'asr.bitfull.tw/convert-audio', deadline: 10, fallback: '回傳 null → 推播失敗提示' },
+  { module: 'TaigiAI.gs',       fn: 'handleTaigiAiOrigPostback', ep: 'Google TTS API',             deadline: 10, fallback: '回傳 null → 推播失敗提示' },
+  { module: 'TailoLearning.gs', fn: 'translateToTailo_',     ep: 'asr.bitfull.tw/translate/to-taigi', deadline: 10, fallback: '回傳 null → 翻譯失敗提示' },
+  { module: 'ScoringHandler.gs',fn: 'handleScoringVoice',    ep: 'asr.bitfull.tw/asr-scoring',     deadline: 10, fallback: '提示 i5 連線異常' },
+  { module: 'ScoringHandler.gs',fn: 'convertTaigiToTailo_',  ep: 'asr.bitfull.tw/taigi-to-tailo',  deadline: 10, fallback: '回傳空字串' },
+  { module: 'HealthCheck.gs',   fn: 'pingServer',            ep: 'asr.bitfull.tw/health',           deadline: 10, fallback: '標記 fail，通知管理員' },
+];
+
+const SOP = [
+  { ok: true,  text: '1. 打開 GAS 執行記錄，找到「執行中」的 doPost' },
+  { ok: true,  text: '2. 點進去看最後一行 log，確認卡在哪個函式' },
+  { ok: true,  text: '3. 若卡在 UrlFetchApp → 確認該函式有無 deadline:10' },
+  { ok: false, text: '4. 若無 deadline → 對照本頁 API 清單，加上去重新部署' },
+  { ok: true,  text: '5. 若有 deadline 仍卡住 → 可能是 i5 server 本身掛掉' },
+  { ok: true,  text: '6. 去 i5 執行 node server.js，確認啟動正常' },
+  { ok: true,  text: '7. 確認 Cloudflare Tunnel 連線狀態（cloudflared status）' },
+  { ok: false, text: '8. 若 i5 正常但 GAS 仍卡 → 重新部署 GAS 版本，重整 Webhook' },
+];
+
+const DIAG = [
+  { icon: '🔍', label: 'GAS 執行記錄', cmd: 'GAS 編輯器 → 執行紀錄 → 篩選「doPost」' },
+  { icon: '🔍', label: '找卡住的 doPost', cmd: '狀態欄找「執行中」超過 30 秒的紀錄' },
+  { icon: '🩺', label: 'i5 健康狀態', cmd: 'GET https://asr.bitfull.tw/health' },
+  { icon: '🔎', label: 'GAS 全域搜尋', cmd: 'Ctrl+Shift+F 搜 UrlFetchApp.fetch 確認 deadline' },
+  { icon: '⚙️', label: '測試 TTS', cmd: 'GAS 執行 testFreeInputTts()' },
+  { icon: '⚙️', label: '測試 MT', cmd: 'GAS 執行 testMtZhToTaigi()' },
+  { icon: '⚙️', label: '系統狀態', cmd: 'GAS 執行 checkSystemStatus()' },
+];
+
+const TIMELINE = [
+  { color: '#3fb950', title: 'TTS.gs v1.8',           meta: '2026-04-09 · synthesizeTtsToUrl / mandarinToTaigi_ / convert / store 全加 deadline:10' },
+  { color: '#3fb950', title: 'TaigiAI.gs v3.1',        meta: '2026-04-09 · _callTaigiAi / _zhToTaigi / TTS postback 全加 deadline:10' },
+  { color: '#3fb950', title: 'TailoLearning.gs v1.6',  meta: '2026-04-09 · translateToTailo_ 加 deadline:10' },
+  { color: '#d29922', title: 'ScoringHandler.gs v2.0', meta: '2026-04-05 · handleScoringVoice 加 deadline:10（已有）' },
+  { color: '#d29922', title: 'HealthCheck.gs v1.1',    meta: '2026-04-05 · pingServer 加 deadline:10（已有）' },
+  { color: '#7d8590', title: '問題發現',               meta: '2026-04-09 · doPost 版本347 卡在執行中，定位到缺少 deadline 保護' },
+];
+
+const RULES_HTML = `
+  <p style="font-size:13px;color:#7d8590;margin-bottom:10px;">每次新增 .gs 只要有 UrlFetchApp，就做這三件事：</p>
+  <div style="background:#1c2128;border-radius:6px;padding:12px;font-size:12px;line-height:1.8;">
+    <div>① 加 <code>muteHttpExceptions: true</code></div>
+    <div>② 加 <code>deadline: 10</code>（呼叫 i5 / 廖教授 / 外部 API）</div>
+    <div>③ catch 例外時 <code>Logger.log</code> + <code>return null</code>，讓上層 graceful fallback</div>
+  </div>
+  <p style="font-size:12px;color:#7d8590;margin-top:10px;">⚠️ 不要等到 doPost 卡住才加，新函式寫出來就加好。</p>
+  <p style="font-size:12px;color:#7d8590;margin-top:6px;">💡 LINE reply token 有效期 30 秒。10 秒 deadline 留足夠緩衝。</p>
+`;
+
+function render() {
+  // module table
+  const mt = document.getElementById('module-table');
+  mt.innerHTML = MODULES.map(m => `
+    <tr>
+      <td><code>${m.file}</code></td>
+      <td><span class="status-pill ${m.deadline ? 'pill-ok':'pill-warn'}">${m.version}</span></td>
+      <td style="color:#7d8590;font-size:12px;">${m.desc}</td>
+      <td>${m.deadline
+        ? '<span class="deadline">✅ 全部加好</span>'
+        : `<span class="no-deadline">⚠️ ${m.note || '部分未加'}</span>`}</td>
+      <td style="color:#7d8590;font-size:11px;">${m.updated}</td>
+    </tr>
+  `).join('');
+
+  // api table
+  const at = document.getElementById('api-table');
+  at.innerHTML = API_CALLS.map(a => `
+    <tr>
+      <td><code>${a.module.replace('.gs','')}</code></td>
+      <td style="color:#a8d8b9;font-size:12px;">${a.fn}()</td>
+      <td style="font-size:11px;color:#7d8590;">${a.ep}</td>
+      <td><span class="status-pill pill-ok">⏱ ${a.deadline}s</span></td>
+      <td style="font-size:11px;color:#7d8590;">${a.fallback}</td>
+    </tr>
+  `).join('');
+
+  // sop
+  const sl = document.getElementById('sop-list');
+  sl.innerHTML = SOP.map(s => `
+    <li>
+      <span class="check-icon">${s.ok ? '✅' : '⬜'}</span>
+      <span>${s.text}</span>
+    </li>
+  `).join('');
+
+  // diag
+  const dl = document.getElementById('diag-list');
+  dl.innerHTML = DIAG.map(d => `
+    <li>
+      <span class="check-icon">${d.icon}</span>
+      <div>
+        <div style="font-size:13px;color:#c9d1d9;">${d.label}</div>
+        <div style="font-size:11px;color:#7d8590;">${d.cmd}</div>
+      </div>
+    </li>
+  `).join('');
+
+  // timeline
+  const tl = document.getElementById('timeline');
+  tl.innerHTML = TIMELINE.map(t => `
+    <li class="tl-item">
+      <div class="tl-dot" style="background:${t.color}"></div>
+      <div class="tl-content">
+        <div class="tl-title">${t.title}</div>
+        <div class="tl-meta">${t.meta}</div>
+      </div>
+    </li>
+  `).join('');
+
+  // rules
+  document.getElementById('rules').innerHTML = RULES_HTML;
+
+  // status badge
+  const allOk = MODULES.every(m => m.deadline);
+  const badge = document.getElementById('system-status');
+  badge.textContent = allOk ? '✅ 全部保護' : '⚠️ 部分未保護';
+  badge.className = 'badge' + (allOk ? '' : ' warn');
+
+  document.getElementById('last-update').textContent =
+    '最後更新：' + new Date().toLocaleTimeString('zh-TW');
+}
+
+function refreshAll() {
+  render();
+}
+
+function copyChecklist() {
+  const lines = [
+    '=== 咱兜的台語 GAS Timeout 防護檢查清單 ===',
+    '',
+    '【API 呼叫點 deadline 狀態】',
+    ...API_CALLS.map(a => `✅ ${a.module} ${a.fn}() → deadline:${a.deadline}s`),
+    '',
+    '【doPost 卡住 SOP】',
+    ...SOP.map(s => `${s.ok ? '✅' : '⬜'} ${s.text}`),
+    '',
+    '【新增 .gs 守則】',
+    '① 加 muteHttpExceptions: true',
+    '② 加 deadline: 10',
+    '③ catch 例外 Logger.log + return null',
+  ];
+  navigator.clipboard.writeText(lines.join('\n'))
+    .then(() => alert('✅ 複製成功！'))
+    .catch(() => alert('請手動複製'));
+}
+
+render();
+</script>
+</body>
+</html>
